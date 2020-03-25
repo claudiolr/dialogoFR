@@ -1,68 +1,95 @@
-###########################################################################
+library(tidyverse)
+library(reshape2)
+library(openxlsx)
+library(lubridate)
+library(RColorBrewer)
+
+
 # Carregamento dos filtros ------------------------------------------------
-###########################################################################
-
 setwd("C:/Users/Claudio/HERKENHOFF & PRATES/OneDrive - HERKENHOFF & PRATES/FundRenova/DialogoSocial/Filtros/129")
-banco <- read.xlsx("filtro_129.xlsx", cols = c(1:3, 6, 8:9, 13:14, 19:20, 34, 52))
-
-
-# cria backup da base única gerada para não ser necessário importar os arquivos novamente
-# backup <- manifestacoes
+filtro129 <- read.xlsx("filtro_129.xlsx")
 
 
 
-# setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/ArqAux")
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/ArqAux")
-municipios <- read.xlsx("Municipios.xlsx")
-
-# gera base única de manifestações
-banco <- merge(banco, municipios, by = "municipio", all = TRUE)
-banco$municipioRecod <- ifelse(is.na(banco$codMunicipio), "Demais municípios", banco$municipio)
-rm(municipios)
-
-
-
-###########################################################################
 # Tratamento das variáveis ------------------------------------------------
-###########################################################################
-
 ### Transforma variáveis string em categóricas (as.factor)
-banco$localidadedemandadesc <- as.factor(banco$localidadedemandadesc)
-banco$statusManifestacao <- as.factor(banco$statusManifestacao)
+filtro129$localidadedemandadesc <- as.factor(filtro129$localidadedemandadesc)
+filtro129$statusManifestacao <- as.factor(filtro129$statusManifestacao)
 
 
 ### Transforma variáveis string em datas (origem 30/12/1899 se deve ao fato de a variável original conter horas)
-banco$dataregistro <- as.Date(banco$dataregistro, tryFormats = c("%d-%m-%Y", "%d/%m/%Y"))
-banco$DataRegistroAnoMes <- format(banco$dataregistro, "%Y/%m")
-banco$DataRegistroAnoMes <- as.factor(banco$DataRegistroAnoMes)
+filtro129$dataregistro <- as.Date(filtro129$dataregistro, tryFormats = c("%d-%m-%Y", "%d/%m/%Y"))
+filtro129$DataRegistroAnoMes <- format(filtro129$dataregistro, "%Y/%m")
+filtro129$DataRegistroAnoMes <- as.factor(filtro129$DataRegistroAnoMes)
 
 
 ### Quebra variável de assunto/tema em duas: Assunto e Tema
-banco <- separate(banco, manifestacaoAssuntoTema,
+filtro129 <- separate(filtro129, manifestacaoAssuntoTema,
                   into = c("ManifestacaoAssunto", "ManifestacaoTema"), sep = "-",
                   extra = "drop", fill = "right",
                   remove = TRUE)
 
 
 ### Remove espaços extras das variáveis Assunto e Tema criadas
-banco$ManifestacaoAssunto <- str_squish(str_trim(banco$ManifestacaoAssunto))
-banco$ManifestacaoTema <- str_squish(str_trim(banco$ManifestacaoTema))
+filtro129$ManifestacaoAssunto <- str_squish(str_trim(filtro129$ManifestacaoAssunto))
+filtro129$ManifestacaoTema <- str_squish(str_trim(filtro129$ManifestacaoTema))
 
 
-### Seleciona e reordena colunas
+### Cria categoria com agrupamento do status das manifestações: finalizada e não finalizada
+filtro129$ManifestacaoFinalizada <- ifelse(filtro129$statusManifestacao %in% c("Respondida",
+                                                                                       "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                                       "Respondida no ato"), "Finalizada", "Não finalizada")
+filtro129$ManifestacaoFinalizada <- as.factor(filtro129$ManifestacaoFinalizada)
 
-banco <- banco[c("idManifestacao",
-                 "protocolo",
-                 "statusManifestacao",
-                 "dataregistro",
-                 "DataRegistroAnoMes",
-                 "Unidade",
-                 "FormaRecebimento",
-                 "ManifestacaoAssunto",
-                 "ManifestacaoTema",
-                 "manifestacaoSubtema",
-                 "manifestante_codPessoa",
-                 "localidadedemandadesc",
-                 "uf",
-                 "municipio",
-                 "municipioRecod")]
+
+### Cria municipiosRecod a partir dos municípios do escopo e alguns outros importantes
+filtro129$municipioRecod <- ifelse(filtro129$municipio %in% c("Acaiaca",
+                                                      "Aimorés",
+                                                      "Alpercata",
+                                                      "Aracruz",
+                                                      "Baixo Guandu",
+                                                      "Barra Longa",
+                                                      "Belo Oriente",
+                                                      "Bom Jesus do Galho",
+                                                      "Bugre",
+                                                      "Caratinga",
+                                                      "Colatina",
+                                                      "Conceição da Barra",
+                                                      "Conselheiro Pena",
+                                                      "Córrego Novo",
+                                                      "Dionísio",
+                                                      "Fernandes Tourinho",
+                                                      "Fundão",
+                                                      "Galileia",
+                                                      "Governador Valadares",
+                                                      "Iapu",
+                                                      "Ipaba",
+                                                      "Ipatinga",
+                                                      "Itueta",
+                                                      "Linhares",
+                                                      "Mariana",
+                                                      "Marilândia",
+                                                      "Marliéria",
+                                                      "Naque",
+                                                      "Ouro Preto",
+                                                      "Pancas",
+                                                      "Periquito",
+                                                      "Pingo D’Água",
+                                                      "Ponte Nova",
+                                                      "Raul Soares",
+                                                      "Resplendor",
+                                                      "Rio Casca",
+                                                      "Rio Doce",
+                                                      "Santa Cruz do Escalvado",
+                                                      "Santana do Paraíso",
+                                                      "São Domingos do Prata",
+                                                      "São José do Goiabal",
+                                                      "São Mateus",
+                                                      "São Pedro dos Ferros",
+                                                      "Sem-Peixe",
+                                                      "Serra",
+                                                      "Sobrália",
+                                                      "Sooretama",
+                                                      "Timóteo",
+                                                      "Tumiritinga",
+                                                      "Vitória"), filtro129$municipio, "Demais municípios")
