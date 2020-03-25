@@ -25,7 +25,7 @@ library(RColorBrewer)
 # [40] "pultimoEncaDE"                  [41] "ultimoEncaPARA"              [42] "DATAHORA_EXP"
 # [43] "DataRegistroAnoMes"             [44] "DataConclusaoAnoMes"         [45] "ManifestacaoFinalizada"
 
-manifestacoes <- filtro1332[c(1, 2, 8, 45, 9, 43, 32, 44, 12, 13, 14, 35, 15)]
+manifestacoes <- filtro1332[c(1, 2, 8, 45, 9, 43, 32, 44, 12, 30, 13, 14, 35, 15, 17)]
 
 
 
@@ -90,109 +90,92 @@ manifestacoes %>%
 
 ### Assunto
 # Cria resumo com média de dias, máximo de dias e total de manifestações por assunto
-Assunto <- manifestacoes %>% 
-     select(ManifestacaoAssunto, Ndias, ManifestacaoFinalizada) %>% 
+manifestacoes %>% 
      group_by(ManifestacaoAssunto, ManifestacaoFinalizada) %>% 
-     summarise(Média = round(mean(Ndias), digits = 1),
-               Máximo = max(Ndias),
+     summarise(Média = round(mean(ndias, na.rm = TRUE), digits = 1),
+               Máximo = max(ndias),
                Total = n()) %>% 
      pivot_wider(names_from = ManifestacaoFinalizada, values_from = c(Média, Máximo, Total))
 
 
 ### Por Tema
 # Cria resumo com média de dias, máximo de dias e total de manifestações por tema
-Tema <- manifestacoes %>% 
-     select(ManifestacaoAssunto, ManifestacaoTema, Ndias, ManifestacaoFinalizada) %>% 
+manifestacoes %>% 
      group_by(ManifestacaoAssunto, ManifestacaoTema, ManifestacaoFinalizada) %>% 
-     summarise(Média = round(mean(Ndias), digits = 1),
-               Máximo = max(Ndias),
+     summarise(Média = round(mean(ndias), digits = 1),
+               Máximo = max(ndias),
                Total = n()) %>% 
      pivot_wider(names_from = ManifestacaoFinalizada, values_from = c(Média, Máximo, Total))
 
 
 ### Por Canais
 # Cria resumo com média de dias, máximo de dias e total de manifestações por canais
-Origem <- manifestacoes %>% 
-     group_by(ManifestacaoOrigem, ManifestacaoFinalizada) %>% 
-     summarise(Média = round(mean(Ndias), digits = 1),
-               Máximo = max(Ndias),
+manifestacoes %>% 
+     group_by(manifestacaoOrigem, ManifestacaoFinalizada) %>% 
+     summarise(Média = round(mean(ndias), digits = 1),
+               Máximo = max(ndias),
                Total = n()) %>% 
      pivot_wider(names_from = c(ManifestacaoFinalizada), values_from = c(Média, Máximo, Total))
 
 
 
-
 ### Cálculo de Tipos de manifestações
 # Cria resumo com média de dias, máximo de dias e total de manifestações por status da manifestação (finalizada e não finalizada)
-ManifestacoesStatus <- manifestacoes %>% 
-     select(StatusManifestacao, LocalidadeDemandaDesc, Ndias) %>% 
-     group_by(StatusManifestacao) %>% 
-     summarise(Quantidade = n(),
-               Média = round(mean(Ndias), digits = 1))
-
-ManifestacoesStatus$StatusManifestacaoRecod <- ifelse(ManifestacoesStatus$StatusManifestacao %in%
-                                                           c("Aguarda Conclusão do Atendimento",
-                                                             "Aguardando conclusão",
-                                                             "Cancelada",
-                                                             "Em tratamento",
-                                                             "Em tratamento para Canais de Relacionamento",
-                                                             "Em tratamento para elaboração de resposta escrita",
-                                                             "Em tratamento para resposta final",
-                                                             "Em tratamento para resposta intermediária"), "Não finalizada",
-                                                      ifelse(ManifestacoesStatus$StatusManifestacao 
-                                                             %in% c("Respondida",
-                                                                    "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)"),
-                                                             "Finalizada", "Finalizada no ato"))
-
-
-### Manifestações por categoria recodificada em três
-ManifestacoesStatusGrupo <- ManifestacoesStatus %>%
-     select(Quantidade, StatusManifestacaoRecod) %>% 
+manifestacoes %>% 
+     mutate(StatusManifestacaoRecod = ifelse(statusManifestacao %in%
+                                                  c("Aguarda Conclusão do Atendimento",
+                                                    "Aguardando conclusão",
+                                                    "Cancelada",
+                                                    "Em tratamento",
+                                                    "Em tratamento para Canais de Relacionamento",
+                                                    "Em tratamento para elaboração de resposta escrita",
+                                                    "Em tratamento para resposta final",
+                                                    "Em tratamento para resposta intermediária"), "Não finalizada",
+                                             ifelse(statusManifestacao %in% c("Respondida",
+                                                           "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)"),
+                                                             "Finalizada", "Finalizada no ato"))) %>% 
+     select(StatusManifestacaoRecod, localidadedemandadesc, ndias) %>% 
      group_by(StatusManifestacaoRecod) %>% 
-     summarise(Total = sum(Quantidade))
+     summarise(Quantidade = n(),
+               Média = round(mean(ndias), digits = 1),
+               Mínimo = min(ndias))
+
 
 
 ### Por território e origem da demanda
 # Por território
-territorio <- manifestacoes %>% 
-     select(territorio, ManifestacaoOrigem, ManifestacaoFinalizada) %>% 
-     group_by(territorio, ManifestacaoFinalizada) %>% 
-     summarise(Total = n()) %>% 
-     pivot_wider(names_from = ManifestacaoFinalizada, values_from = Total)
+manifestacoes %>% 
+     mutate(manifestacaoOrigemRecod = ifelse(manifestacaoOrigem %in% c("0800",
+                                                                       "Contato Ativo 0800/Fale Conosco"), "0800",
+                                             ifelse(manifestacaoOrigem %in% c("Contato Ativo CIAs",
+                                                                              "Postos de Atendimento CIAs"), "CIAs",
+                                                    ifelse(manifestacaoOrigem %in% c("Fale Conosco",
+                                                                                     "Fale Conosco - Portal"), "Portal do usuário",
+                                                           ifelse(manifestacaoOrigem %in% c("Abordagem presencial",
+                                                                                            "Mobilização",
+                                                                                            "Reunião de Diálogo",
+                                                                                            "Eventos"), "Diálogo", "Outros"))))) %>% 
+     group_by(territorio, ManifestacaoFinalizada, manifestacaoOrigemRecod) %>% 
+     summarise(Total = n())
 
-territorio$territorio[is.na(territorio$territorio)] <- "Geral"
-territorio$territorio <- as.factor(territorio$territorio)
 
-
-
+     
 # Por origem da demanda
-territorioOrigem <- manifestacoes %>% 
-     group_by(territorio, ManifestacaoOrigem, ManifestacaoFinalizada) %>% 
+manifestacoes %>%
+     mutate(manifestacaoOrigemRecod = ifelse(manifestacaoOrigem %in% c("0800",
+                                                                       "Contato Ativo 0800/Fale Conosco"), "0800",
+                                             ifelse(manifestacaoOrigem %in% c("Contato Ativo CIAs",
+                                                                              "Postos de Atendimento CIAs"), "CIAs",
+                                                    ifelse(manifestacaoOrigem %in% c("Fale Conosco",
+                                                                                     "Fale Conosco - Portal"), "Portal do usuário",
+                                                           ifelse(manifestacaoOrigem %in% c("Abordagem presencial",
+                                                                                            "Mobilização",
+                                                                                            "Reunião de Diálogo",
+                                                                                            "Eventos"), "Diálogo", "Outros"))))) %>% 
+     group_by(territorio, manifestacaoOrigemRecod, ManifestacaoFinalizada) %>% 
      summarise(Total = n()) %>% 
      pivot_wider(names_from = ManifestacaoFinalizada, values_from = Total)
 
-
-territorioOrigem$territorio <- factor(territorioOrigem$territorio, levels = c("Território de Mariana",
-                                                                              "Território Alto Rio Doce",
-                                                                              "Território Calha do Rio Doce",
-                                                                              "Território Médio Rio Doce",
-                                                                              "Território Baixo Rio Doce",
-                                                                              "Território Foz Rio Doce",
-                                                                              "Sem informação"))
-
-
-territorioOrigem$ManifestacaoOrigem <- as.factor(territorioOrigem$ManifestacaoOrigem)
-
-territorioOrigem$ManifestacaoOrigemRecod <- ifelse(territorioOrigem$ManifestacaoOrigem %in% c("0800",
-                                                                                              "Contato Ativo 0800/Fale Conosco"), "0800",
-                                                   ifelse(territorioOrigem$ManifestacaoOrigem %in% c("Contato Ativo CIAs",
-                                                                                                     "Postos de Atendimento CIAs"), "CIAs",
-                                                          ifelse(territorioOrigem$ManifestacaoOrigem %in% c("Fale Conosco",
-                                                                                                            "Fale Conosco - Portal"), "Portal do usuário",
-                                                                 ifelse(territorioOrigem$ManifestacaoOrigem %in% c("Abordagem presencial",
-                                                                                                                   "Mobilização",
-                                                                                                                   "Reunião de Diálogo",
-                                                                                                                   "Eventos"), "Diálogo", "Outros"))))
 
 
 setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes/Relatorios/ReportMensal/Relat202002")
