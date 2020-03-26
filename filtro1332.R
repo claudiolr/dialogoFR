@@ -4,6 +4,10 @@ library(reshape2)
 library(openxlsx)
 library(lubridate)
 library(RColorBrewer)
+require(usethis)
+
+
+
 
 
 # Carregamento dos filtros ------------------------------------------------

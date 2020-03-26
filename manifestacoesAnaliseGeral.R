@@ -8,7 +8,7 @@ library(RColorBrewer)
 
 # Escolha das colunas a partir do filtro utilizado ------------------------
 
-########## Filtro129.R
+########## Filtro1332.R
 # [1] "idManifestacao"                  [2] "protocolo"                    [3] "manifestante_codPessoa"
 # [4] "manifestante"                    [5] "SEXO"                         [6] "idFamilia"
 # [7] "statusPostoAtendimento"          [8] "statusManifestacao"           [9] "dataregistro"
