@@ -28,17 +28,50 @@ library(RColorBrewer)
 manifestacoes <- filtro1332[c(1, 2, 8, 45, 9, 43, 32, 44, 12, 30, 13, 14, 35, 15, 17)]
 
 
+########## Filtro237.R
+# [1] "datareg"                              [2] "idManifestacao"                         [3] "protocolo"
+# [4] "statusPostoAtendimento"               [5] "idStatusManifestacao"                   [6] "statusManifestacao"
+# [7] "datainsercao"                         [8] "horainsercao"                           [9] "FormaRecebimento"
+# [10] "recebimentoManifestacao_codPessoa"   [11] "pessoarecebimentomanif"                [12] "operadorinseriu"
+# [13] "nomeoperadorinseriu"                 [14] "unidadeinseriu"                        [15] "manifestante_codPessoa"
+# [16] "manifestante"                        [17] "manifestanteapelido"                   [18] "idFamilia"
+# [19] "CategoriaAcidenteInformada"          [20] "constamodatingidos"                    [21] "uf"
+# [22] "municipio"                           [23] "comunidade"                            [24] "localidademanifestante"
+# [25] "localTrabalho"                       [26] "areatrabalho"                          [27] "cargo"
+# [28] "CATEGORIA"                           [29] "telefones"                             [30] "email"
+# [31] "prazo"                               [32] "prazoajust"                            [33] "statusPrazo"
+# [34] "UltimoEncaForma"                     [35] "ultimoencaTipo"                        [36] "idManifestacaoNatureza"
+# [37] "manifestacaoNatureza"                [38] "idManifestacaoTema"                    [39] "idManifestacaoAssunto"
+# [40] "ManifestacaoAssunto"                 [41] "ManifestacaoTema"                      [42] "manifestacaoAssunto"              
+# [43] "idManifestacaoSubtema"               [44] "manifestacaoSubtema"                   [45] "manifestacaoCriticidade"
+# [46] "abrangencia"                         [47] "idAcao"                                [48] "analistaResponsavel_codPessoa"
+# [49] "analistaResponsavel"                 [50] "resumo"                                [51] "endereco"
+# [52] "dataLimiteConclusao"                 [53] "dataconclusao"                         [54] "ndias"
+# [55] "responsavelconclusao"                [56] "Unidade_conclusao"                     [57] "operadoralteracaofinal"
+# [58] "nomeoperadoralteracaofinal"          [59] "resumoconclusao"                       [60] "avaliacaoTratamento"
+# [61] "avaliacaoTratamentoMotivo"           [62] "localidadedemanda"                     [63] "localidadedemandadesc"
+# [64] "localidadedemanda_UF"                [65] "territorio"                            [66] "MODULO_ATINGIDO"
+# [67] "municipio_origem"                    [68] "comunidade_origem"                     [69] "formapreferidaretorno"
+# [70] "respostajuridico"                    [71] "DATAHORA_EXP"                          [72] "latitude"
+# [73] "longitude"                           [74] "numero_contato_manifestante"           [75] "requerAcaoFutura"
+# [76] "responsavelPelaDemanda"              [77] "StatusDemanda"                         [78] "ultimoEncaminhamento"
+# [79] "ultimoEncaData"                      [80] "ultimoEncaDE"                          [81] "ultimoEncaPARA"
+# [82] "ManifestacaoFinalizada"              [83] "municipioRecod"
+
+manifestacoes <- filtro327[c(2, 3, 6, 82, 1, 53, 54, 9, 40, 41, 44, 67, 65)]
+
 
 
 ### Por mês/ano do registro
 # Cria resumo com média de dias, máximo de dias e total de manifestações por mês/ano do registro da manifestação
 manifestacoes %>%
      filter(statusManifestacao != "Cancelada") %>% 
-     group_by(DataRegistroAnoMes, ManifestacaoFinalizada) %>% 
+     mutate(datareg = format(datareg, "%Y-%m")) %>% 
+     group_by(datareg, ManifestacaoFinalizada) %>% 
      summarise(Média = round(mean(ndias), digits = 1),
                Total = n()) %>% 
      ggplot() +
-     geom_col(aes(x = DataRegistroAnoMes, y = Total, fill = ManifestacaoFinalizada)) +
+     geom_col(aes(x = datareg, y = Total, fill = ManifestacaoFinalizada)) +
      labs(title = "Manifestações registradas por mês", x = "", y = "") + 
      scale_y_continuous(breaks = seq(0, 30000, 2500)) +
      scale_fill_manual(name = "Status", values = c("#3d800e", "#b81a2c"), labels = c("Finalizada", "Não finalizada")) +
@@ -52,13 +85,14 @@ manifestacoes %>%
 
 ### Por mês/ano da finalização
 manifestacoes %>%
+     mutate(dataconclusao = format(dataconclusao, "%Y-%m")) %>% 
      filter(ManifestacaoFinalizada == "Finalizada") %>% 
-     filter(!is.na(DataConclusaoAnoMes)) %>% 
-     group_by(DataConclusaoAnoMes, ManifestacaoFinalizada) %>% 
+     filter(!is.na(dataconclusao)) %>% 
+     group_by(dataconclusao, ManifestacaoFinalizada) %>% 
      summarise(Média = round(mean(ndias, na.rm = TRUE), digits = 1),
                Total = n()) %>% 
      ggplot() +
-     geom_col(aes(x = DataConclusaoAnoMes, y = Total, fill = Média)) +
+     geom_col(aes(x = dataconclusao, y = Total, fill = Média)) +
      labs(title = "Manifestações concluídas por mês,\n por média de tempo de resolução", x = "", y = "") + 
      scale_y_continuous(breaks = seq(0, 50000, 2500)) +
      scale_fill_gradient(name = "Média de tempo (dias)", low = "#036121", high = "#c71221") +
@@ -71,21 +105,22 @@ manifestacoes %>%
 
 
 ### Por mês/ano do registro e tipo
-manifestacoes %>%
-     filter(ManifestacaoFinalizada == "Não finalizada" &
-                 statusManifestacao != "Cancelada") %>% 
-     group_by(DataRegistroAnoMes, ManifestacaoFinalizada, ManifestacaoAssunto) %>% 
-     summarise(Média = round(mean(ndias), digits = 1),
-               Total = n()) %>% 
-     mutate(ManifestacaoAssuntoRecod = ifelse(ManifestacaoAssunto )) %>% 
-     ggplot() +
-     geom_col(aes(x = DataRegistroAnoMes, y = Total, fill = ManifestacaoAssunto)) +
-     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-           legend.position = "bottom",
-           axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
-           axis.ticks.y = element_line(colour = "gray", size = .5),
-           panel.grid.major.y = element_line(colour = "gray", size = .5),
-           panel.background = element_blank())
+# manifestacoes %>%
+#      mutate(datareg = format(datareg, "%Y-%m")) %>% 
+#      filter(ManifestacaoFinalizada == "Não finalizada" &
+#                  statusManifestacao != "Cancelada") %>% 
+#      group_by(datareg, ManifestacaoFinalizada, ManifestacaoAssunto) %>% 
+#      summarise(Média = round(mean(ndias), digits = 1),
+#                Total = n()) %>% 
+#      mutate(ManifestacaoAssuntoRecod = ifelse(ManifestacaoAssunto )) %>% 
+#      ggplot() +
+#      geom_col(aes(x = DataRegistroAnoMes, y = Total, fill = ManifestacaoAssunto)) +
+#      theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+#            legend.position = "bottom",
+#            axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+#            axis.ticks.y = element_line(colour = "gray", size = .5),
+#            panel.grid.major.y = element_line(colour = "gray", size = .5),
+#            panel.background = element_blank())
 
 
 
@@ -135,7 +170,6 @@ manifestacoes %>%
                                              ifelse(statusManifestacao %in% c("Respondida",
                                                            "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)"),
                                                              "Finalizada", "Finalizada no ato"))) %>% 
-     select(StatusManifestacaoRecod, localidadedemandadesc, ndias) %>% 
      group_by(StatusManifestacaoRecod) %>% 
      summarise(Quantidade = n(),
                Média = round(mean(ndias), digits = 1),
@@ -163,17 +197,17 @@ manifestacoes %>%
      
 # Por origem da demanda
 manifestacoes %>%
-     mutate(manifestacaoOrigemRecod = ifelse(manifestacaoOrigem %in% c("0800",
+     mutate(FormaRecebimentoRecod = ifelse(FormaRecebimento %in% c("0800",
                                                                        "Contato Ativo 0800/Fale Conosco"), "0800",
-                                             ifelse(manifestacaoOrigem %in% c("Contato Ativo CIAs",
+                                             ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
                                                                               "Postos de Atendimento CIAs"), "CIAs",
-                                                    ifelse(manifestacaoOrigem %in% c("Fale Conosco",
+                                                    ifelse(FormaRecebimento %in% c("Fale Conosco",
                                                                                      "Fale Conosco - Portal"), "Portal do usuário",
-                                                           ifelse(manifestacaoOrigem %in% c("Abordagem presencial",
+                                                           ifelse(FormaRecebimento %in% c("Abordagem presencial",
                                                                                             "Mobilização",
                                                                                             "Reunião de Diálogo",
                                                                                             "Eventos"), "Diálogo", "Outros"))))) %>% 
-     group_by(territorio, manifestacaoOrigemRecod, ManifestacaoFinalizada) %>% 
+     group_by(territorio, FormaRecebimentoRecod, ManifestacaoFinalizada) %>% 
      summarise(Total = n()) %>% 
      pivot_wider(names_from = ManifestacaoFinalizada, values_from = Total)
 
@@ -212,8 +246,11 @@ rm(Assunto,
 
 # Gráficos ----------------------------------------------------------------
 
-ggplot(manifestacoes) +
-     geom_col(aes(x = DataRegistroAnoMes, y = mean(ndias), fill = ManifestacaoFinalizada)) +
+manifestacoes %>% 
+     mutate(datareg = format(datareg, "%Y-%m")) %>% 
+     group_by(datareg, ManifestacaoFinalizada) %>% 
+     ggplot() +
+     geom_col(aes(x = datareg, y = mean(ndias), fill = ManifestacaoFinalizada)) +
      labs(title = "Dias decorridos desde \n o registro da manifestação",
           x = "Mês/ano", y = "Dias") +
      scale_y_continuous(breaks = seq(0, 100, 10)) +
@@ -224,12 +261,15 @@ ggplot(manifestacoes) +
            panel.background = element_blank())
 
 
-manifestacoes %>% filter(StatusManifestacao != "Cancelada") %>% 
+manifestacoes %>%
+     mutate(dataconclusao = format(dataconclusao, "%Y-%m")) %>% 
+     filter(statusManifestacao != "Cancelada" & !is.na(statusManifestacao)) %>% 
+     filter(!is.na(dataconclusao)) %>% 
      ggplot() +
-     geom_col(aes(x = DataConclusaoAnoMes, y = mean(ndias), fill = ManifestacaoFinalizada)) +
+     geom_col(aes(x = dataconclusao, y = mean(ndias), fill = ManifestacaoFinalizada)) +
      labs(title = "Dias decorridos desde \n o registro da manifestação",
           x = "Mês/ano", y = "Dias") +
-     scale_y_continuous(breaks = seq(0, 1500, 50)) +
+     scale_y_continuous(breaks = seq(0, 600000, 50000)) +
      theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
            axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
            axis.ticks.y = element_line(colour = "gray", size = .5),
@@ -237,7 +277,9 @@ manifestacoes %>% filter(StatusManifestacao != "Cancelada") %>%
            panel.background = element_blank())
 
 
-ggplot(manifestacoes, aes(x = DataConclusaoAnoMes, y = ManifestacaoFinalizada)) +
+manifestacoes %>%
+     mutate(dataconclusao = format(dataconclusao, "%Y-%m")) %>% 
+     ggplot(aes(x = dataconclusao, y = ManifestacaoFinalizada)) +
      geom_col() +
      labs(title = "Manifestações finalizadas, por mês", x = "", y = "") + 
      theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
@@ -247,8 +289,8 @@ ggplot(manifestacoes, aes(x = DataConclusaoAnoMes, y = ManifestacaoFinalizada)) 
            panel.background = element_blank())
 
 
-
-ggplot(territorioOrigem, aes(x = territorio, y = Soma, fill = ManifestacaoOrigemRecod)) +
+manifestacoes %>% 
+     ggplot(aes(x = territorio, y = Soma, fill = ManifestacaoOrigemRecod)) +
      geom_bar(stat = "identity",
               position = "fill") + 
      theme_minimal() +
@@ -273,8 +315,8 @@ ggplot(territorioOrigem, aes(x = territorio, y = Soma, fill = ManifestacaoOrigem
 
 ### Cabeçalho do relatório
 TotalGeral <- manifestacoes %>%
-     filter(localidadedemandadesc %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
-     group_by(localidadedemandadesc, ManifestacaoFinalizada) %>%
+     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
+     group_by(municipio_origem, ManifestacaoFinalizada) %>%
      summarise(Total = n()) %>% 
      pivot_wider(names_from = ManifestacaoFinalizada, values_from = Total) %>% 
      mutate(Total = sum(Finalizada, `Não finalizada`)) %>% 
@@ -282,12 +324,12 @@ TotalGeral <- manifestacoes %>%
 
 
 TotalMesAtual <- manifestacoes %>%
-     select(localidadedemandadesc, DataRegistroAnoMes, ndias) %>% 
-     filter(localidadedemandadesc %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>%
-     filter(DataRegistroAnoMes == "2020/02" | DataRegistroAnoMes == "2020/03") %>% 
-     group_by(localidadedemandadesc, DataRegistroAnoMes) %>%
+     mutate(datareg = format(datareg, "%Y-%m")) %>% 
+     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>%
+     filter(datareg == "2020-02" | datareg == "2020-03") %>% 
+     group_by(municipio_origem, datareg) %>%
      summarise(DemandasMes = n()) %>% 
-     pivot_wider(names_from = DataRegistroAnoMes, values_from = DemandasMes)
+     pivot_wider(names_from = datareg, values_from = DemandasMes)
 
 Geral <- merge(TotalMesAtual, TotalGeral, by = "localidadedemandadesc")
 rm(TotalMesAtual, TotalGeral)
@@ -308,31 +350,32 @@ ManifestacoesStatus <- manifestacoes %>%
                                                     %in% c("Respondida",
                                                            "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)"),
                                                     "Finalizada", "Finalizada no ato"))) %>%
-     filter(localidadedemandadesc %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
+     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
      group_by(StatusManifestacaoRecod) %>% 
      summarise(Total = n())
 
 
 ### Página 1 (segunda parte)
 Mensal <- manifestacoes %>%
-     filter(localidadedemandadesc %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>%
-     group_by(DataRegistroAnoMes, localidadedemandadesc) %>% 
+     mutate(datareg = format(datareg, "%Y-%m")) %>% 
+     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>%
+     group_by(datareg, municipio_origem) %>% 
      summarise(Total = n()) %>% 
-     pivot_wider(names_from = localidadedemandadesc, values_from = c(Total)) %>% 
+     pivot_wider(names_from = municipio_origem, values_from = c(Total)) %>% 
      mutate(Total = sum(`Barra Longa`, `Rio Doce`, `Santa Cruz do Escalvado`, na.rm = TRUE))
 
 
 TempoResolucao <- manifestacoes %>%
-     filter(localidadedemandadesc %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
+     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
      filter(ManifestacaoFinalizada == "Finalizada") %>% 
-     group_by(DataRegistroAnoMes) %>% 
+     group_by(datareg) %>% 
      summarise(Média = mean(ndias))
 
 
 
 ### Página 2
 AssuntoTema <- manifestacoes %>%
-     filter(localidadedemandadesc %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
+     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
      group_by(ManifestacaoAssunto, ManifestacaoTema, ManifestacaoFinalizada) %>% 
      summarise(Total = n(),
                Média = round(mean(ndias), digits = 1),
@@ -345,7 +388,7 @@ AssuntoTema <- manifestacoes %>%
 
 
 ### Salva os cálculos
-setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes/Relatorios/ReportMensal/Relat202003")
+# setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes/Relatorios/ReportMensal/Relat202003")
 setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes/Relatorios/ReportMensal/Relat202003")
 write.xlsx(list(Cabeçalho = Geral,
                 ManifestacoesStatus = ManifestacoesStatus,
