@@ -29,19 +29,12 @@ filtro327$ultimoEncaData <- as.Date(filtro327$ultimoEncaData, origin = "1899-12-
 filtro327 <- separate(filtro327, manifestacaoAssuntoTema,
                       into = c("ManifestacaoAssunto", "ManifestacaoTema"), sep = "-",
                       extra = "drop", fill = "right",
-                      remove = TRUE)
+                      remove = FALSE)
 
 
 ### Remove espaços extras das variáveis Assunto e Tema criadas
 filtro327$ManifestacaoAssunto <- str_squish(str_trim(filtro327$ManifestacaoAssunto))
 filtro327$ManifestacaoTema <- str_squish(str_trim(filtro327$ManifestacaoTema))
-
-
-### Cria categoria com agrupamento do status das manifestações: finalizada e não finalizada
-filtro327$ManifestacaoFinalizada <- ifelse(filtro327$statusManifestacao %in% c("Respondida",
-                                                                               "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
-                                                                               "Respondida no ato"), "Finalizada", "Não finalizada")
-filtro327$ManifestacaoFinalizada <- as.factor(filtro327$ManifestacaoFinalizada)
 
 
 ### Cria municipiosRecod a partir dos municípios do escopo e alguns outros importantes
