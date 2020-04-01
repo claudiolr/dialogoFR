@@ -36,13 +36,13 @@ library(RColorBrewer)
 # [79] "ultimoEncaminhamento"                [80] "ultimoEncaData"                        [81] "ultimoEncaDE"
 # [82] "ultimoEncaPARA"                      [83] "municipioRecod"                   
 
-manifestacoes <- filtro327[c(2, 3, 6, 21, 22, 83, 1, 54, 55, 9, 40, 41, 42, 45, 76, 78, 68, 64)]
+cenario <- filtro327[c(2, 3, 6, 21, 22, 83, 1, 54, 55, 9, 40, 41, 42, 45, 76, 78, 68, 64)]
 
 
 # Manifestações
 # 1.Total de manifestações registradas de nov/15 até 31/03
 # 2. Total de manifestações registradas em março/20
-manifestacoes %>% 
+cenario %>% 
      mutate(MesAtual = ifelse(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31"), 1, 0)) %>% 
      summarise(Total = n(),
                MesAtual = sum(MesAtual))
@@ -50,7 +50,7 @@ manifestacoes %>%
 
 
 # 3. Status de todas as manifestações (nov/15 até 31/03) – status simplificado (respondidas x não respondidas)
-manifestacoes %>% 
+cenario %>% 
      mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
                                                                   "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                   "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
@@ -60,7 +60,7 @@ manifestacoes %>%
 
 
 # 4. Quantidade e % de manifestações por assunto/tema (PG + detalhamento) no último mês (março/20)
-manifestacoes %>% 
+cenario %>% 
      mutate(AssuntoTema = str_replace_all(manifestacaoAssuntoTema, c("PG001 Levantamento e Cadastro" = "PG01",
                                                                      "PG002 Ressarcimento e Indenização" = "PG02",
                                                                      "PG003 Proteção e Recuperação da Qualidade de Vida dos Povos Indígenas" = "PG03",
@@ -110,13 +110,13 @@ manifestacoes %>%
 
 # Demandas Individuais
 # 1. Total de demandas individuais existentes (nov/15 até 31/03)
-manifestacoes %>% 
+cenario %>% 
      filter(!is.na(StatusDemanda)) %>% 
      summarise(Total = n())
 
 
 # 2. Status de todas as demandas individuais (nov/15 até 31/03)
-manifestacoes %>% 
+cenario %>% 
      filter(!is.na(StatusDemanda)) %>% 
      group_by(StatusDemanda) %>% 
      summarise(Total = n()) %>% 
@@ -124,7 +124,7 @@ manifestacoes %>%
 
 
 # 3. Quantidade de demandas individuais por assunto (PG) e status (nov/15 até 31/03)
-manifestacoes %>% 
+cenario %>% 
      filter(!is.na(StatusDemanda)) %>% 
      group_by(StatusDemanda, ManifestacaoAssunto) %>% 
      summarise(Total = n()) %>% 
@@ -134,3 +134,10 @@ manifestacoes %>%
 
 
 
+
+
+
+knitr::kable(cenario %>% 
+                  mutate(MesAtual = ifelse(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31"), 1, 0)) %>% 
+                  summarise(Total = n(),
+                            MesAtual = sum(MesAtual)), caption = "Total de manifestações registradas e manifestações do último mês")
