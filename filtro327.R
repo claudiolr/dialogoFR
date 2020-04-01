@@ -6,8 +6,8 @@ library(RColorBrewer)
 
 
 # Carregamento dos filtros ------------------------------------------------
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/OneDrive - HERKENHOFF & PRATES/DialogoSocial/Filtros/327")
-filtro327 <- read.xlsx("filtro_327_20200323134054.xlsx")
+setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/OrganizacaoInformacao/FiltrosSGS/327")
+filtro327 <- read.xlsx("filtro_327_20200329201522.xlsx")
 
 
 
