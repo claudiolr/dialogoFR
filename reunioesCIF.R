@@ -9,10 +9,9 @@ library(lubridate)
 
 # Filtro 20 - Tratamento --------------------------------------------------
 # Caminho do Filtro 20
-# setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/RptMensal/202002")
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/RptMensal/202002")
 
-filtro <- read.xlsx("filtro20_20200304.xlsx")
+setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/OrganizacaoInformacao/FiltrosSGS/20")
+filtro <- read.xlsx("filtro_20_20200327144916.xlsx")
 filtro <- filtro %>% select("idAcao",
                             "titulo",
                             "tipoAcao",
@@ -237,13 +236,15 @@ rm(bkpAcoes, consolidado, filtro, geralMesesAnteriores, matizes, municipios)
 
 
 
-setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/RptMensal/202002")
+setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/RptMensal/202003")
+setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/RptMensal/202003")
 write.xlsx(list(PlanPrincipal = reunioes,
                 Plan = plan1,
                 Geral = geral),
-           "BDDadCIF202002.xlsx",
+           "BDDadCIF202003.xlsx",
            headerStyle = createStyle(halign = "center", textDecoration = "bold"),
            firstCol = TRUE, firstRow = TRUE, withFilter = TRUE)
 
 rm(geral, plan1, reunioes)
+
 
