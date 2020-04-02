@@ -18,7 +18,7 @@ library(RColorBrewer)
 # [19] "localidadedemandadescuf"        [20] "analistaResponsavel"         [21] "manifestacaoCriticidade"
 # [22] "C1manifreldiffin"               [23] "C2manifrelprosaude"          [24] "C3manifsolaliment"
 # [25] "C4manifrelriscalg"              [26] "C5manifsolappisc"            [27] "C8manifreltensuic"
-# [28] "C6manifrelgqtpoeira"            [29] "C7manifamFecmasocila"         [30] "manifestacaoOrigem"
+# [28] "C6manifrelgqtpoeira"            [29] "C7manifamFecmasocila"        [30] "manifestacaoOrigem"
 # [31] "resumo"                         [32] "dataConclusao"               [33] "resumoconclusao"
 # [34] "requerAcaoFutura"               [35] "manifestacaoSubtema"         [36] "responsavelPelaDemanda"
 # [37] "StatusDemanda"                  [38] "UltimoEncaminhamento"        [39] "ultimoEncaData"
@@ -27,8 +27,7 @@ library(RColorBrewer)
 
 manifestacoes <- filtro1332[c(1, 2, 8, 45, 9, 43, 32, 44, 12, 30, 13, 14, 35, 15, 17)]
 
-
-########## Filtro237.R
+########## Filtro327.R
 # [1] "datareg"                              [2] "idManifestacao"                         [3] "protocolo"
 # [4] "statusPostoAtendimento"               [5] "idStatusManifestacao"                   [6] "statusManifestacao"
 # [7] "datainsercao"                         [8] "horainsercao"                           [9] "FormaRecebimento"
@@ -40,27 +39,27 @@ manifestacoes <- filtro1332[c(1, 2, 8, 45, 9, 43, 32, 44, 12, 30, 13, 14, 35, 15
 # [25] "localTrabalho"                       [26] "areatrabalho"                          [27] "cargo"
 # [28] "CATEGORIA"                           [29] "telefones"                             [30] "email"
 # [31] "prazo"                               [32] "prazoajust"                            [33] "statusPrazo"
-# [34] "UltimoEncaForma"                     [35] "ultimoencaTipo"                        [36] "idManifestacaoNatureza"
-# [37] "manifestacaoNatureza"                [38] "idManifestacaoTema"                    [39] "idManifestacaoAssunto"
-# [40] "manifestacaoAssuntoTema"             [41] "ManifestacaoAssunto"                   [42] "ManifestacaoTema"
-# [43] "manifestacaoAssunto"                 [44] "idManifestacaoSubtema"                 [45] "manifestacaoSubtema"
-# [46] "manifestacaoCriticidade"             [47] "abrangencia"                           [48] "idAcao"
-# [49] "analistaResponsavel_codPessoa"       [50] "analistaResponsavel"                   [51] "resumo"
-# [52] "endereco"                            [53] "dataLimiteConclusao"                   [54] "dataconclusao"
-# [55] "ndias"                               [56] "responsavelconclusao"                  [57] "Unidade_conclusao"
-# [58] "operadoralteracaofinal"              [59] "nomeoperadoralteracaofinal"            [60] "resumoconclusao"
-# [61] "avaliacaoTratamento"                 [62] "avaliacaoTratamentoMotivo"             [63] "localidadedemanda"
-# [64] "localidadedemandadesc"               [65] "localidadedemanda_UF"                  [66] "territorio"
-# [67] "MODULO_ATINGIDO"                     [68] "municipio_origem"                      [69] "comunidade_origem"
-# [70] "formapreferidaretorno"               [71] "respostajuridico"                      [72] "DATAHORA_EXP"
-# [73] "latitude"                            [74] "longitude"                             [75] "numero_contato_manifestante"
-# [76] "requerAcaoFutura"                    [77] "responsavelPelaDemanda"                [78] "StatusDemanda"
-# [79] "ultimoEncaminhamento"                [80] "ultimoEncaData"                        [81] "ultimoEncaDE"
-# [82] "ultimoEncaPARA"                      [83] "municipioRecod"                   
+# [34] "ultimoEncaDE"                        [35] "ultimoEncaPARA"                        [36] "UltimoEncaForma"
+# [37] "ultimoencaData"                      [38] "ultimoencaTipo"                        [39] "ultimoEncaminhamento"
+# [40] "idManifestacaoNatureza"              [41] "manifestacaoNatureza"                  [42] "idManifestacaoTema"
+# [43] "idManifestacaoAssunto"               [44] "manifestacaoAssuntoTema"               [45] "ManifestacaoAssunto"
+# [46] "ManifestacaoTema"                    [47] "manifestacaoAssunto"                   [48] "idManifestacaoSubtema"
+# [49] "manifestacaoSubtema"                 [50] "manifestacaoCriticidade"               [51] "abrangencia"
+# [52] "idAcao"                              [53] "analistaResponsavel_codPessoa"         [54] "analistaResponsavel"
+# [55] "resumo"                              [56] "endereco"                              [57] "dataLimiteConclusao"
+# [58] "dataconclusao"                       [59] "ndias"                                 [60] "responsavelconclusao"
+# [61] "Unidade_conclusao"                   [62] "operadoralteracaofinal"                [63] "nomeoperadoralteracaofinal"
+# [64] "resumoconclusao"                     [65] "avaliacaoTratamento"                   [66] "avaliacaoTratamentoMotivo"
+# [67] "localidadedemanda"                   [68] "localidadedemandadesc"                 [69] "localidadedemanda_UF"
+# [70] "territorio"                          [71] "MODULO_ATINGIDO"                       [72] "municipio_origem"
+# [73] "comunidade_origem"                   [74] "formapreferidaretorno"                 [75] "respostajuridico"
+# [76] "DATAHORA_EXP"                        [77] "latitude"                              [78] "longitude"
+# [79] "numero_contato_manifestante"         [80] "requerAcaoFutura"                      [81] "responsavelPelaDemanda"
+# [82] "statusdemanda"                       [83] "ultimoEncaminhamentoEnc"               [84] "ultimoEncaDataEnc"
+# [85] "ultimoEncaDEEnc"                     [86] "ultimoEncaPARAEnc"                     [87] "ultimoEncaData"                   
+# [88] "municipioRecod"        
 
-manifestacoes <- filtro327[c(2, 3, 6, 21, 22, 83, 1, 54, 55, 9, 40, 41, 42, 45, 68, 64)]
-manifestacoes <- filtro327[c(2, 3, 6, 21, 22, 82, 1, 53, 54, 9, 40, 41, 44, 67, 65)]
-
+manifestacoes <- filtro327[c(2, 3, 6, 1, 58, 59, 9, 45, 46, 49, 68, 22, 70)]
 
 
 ### Por mês/ano do registro
@@ -263,14 +262,17 @@ manifestacoes %>%
 
 
 manifestacoes %>%
-     mutate(dataconclusao = format(dataconclusao, "%Y-%m")) %>% 
-     filter(statusManifestacao != "Cancelada" & !is.na(statusManifestacao)) %>% 
-     filter(!is.na(dataconclusao)) %>% 
+     mutate(dataconclusao = format(dataconclusao, "%Y-%m"),
+            statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+     filter(statusManifestacao != "Cancelada" & !is.na(statusManifestacao),
+            !is.na(dataconclusao)) %>% 
      ggplot() +
-     geom_col(aes(x = dataconclusao, y = mean(ndias), fill = ManifestacaoFinalizada)) +
+     geom_bar(aes(x = dataconclusao, fill = statusManifestacao)) +
      labs(title = "Dias decorridos desde \n o registro da manifestação",
           x = "Mês/ano", y = "Dias") +
-     scale_y_continuous(breaks = seq(0, 600000, 50000)) +
+     scale_y_continuous(breaks = seq(0, 60000, 5000)) +
      theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
            axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
            axis.ticks.y = element_line(colour = "gray", size = .5),
@@ -316,21 +318,25 @@ manifestacoes %>%
 
 ### Cabeçalho do relatório
 TotalGeral <- manifestacoes %>%
-     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
-     group_by(municipio_origem, ManifestacaoFinalizada) %>%
+     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
+     mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+     group_by(localidadedemandadesc, statusManifestacao) %>%
      summarise(Total = n()) %>% 
-     pivot_wider(names_from = ManifestacaoFinalizada, values_from = Total) %>% 
+     pivot_wider(names_from = statusManifestacao, values_from = Total) %>% 
      mutate(Total = sum(Finalizada, `Não finalizada`)) %>% 
      mutate(`Taxa de Finalização` = (Finalizada/Total)*100)
 
 
 TotalMesAtual <- manifestacoes %>%
+     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado"),
+            datareg >= "2020-02-01" & datareg <= "2020-03-31") %>% 
      mutate(datareg = format(datareg, "%Y-%m")) %>% 
-     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>%
-     filter(datareg == "2020-02" | datareg == "2020-03") %>% 
-     group_by(municipio_origem, datareg) %>%
+     group_by(localidadedemandadesc, datareg) %>%
      summarise(DemandasMes = n()) %>% 
-     pivot_wider(names_from = datareg, values_from = DemandasMes)
+     pivot_wider(names_from = datareg, values_from = DemandasMes, values_fill = list(DemandasMes = 0))
+
 
 Geral <- merge(TotalMesAtual, TotalGeral, by = "localidadedemandadesc")
 rm(TotalMesAtual, TotalGeral)
@@ -338,7 +344,7 @@ rm(TotalMesAtual, TotalGeral)
 
 ### Cálculo de Tipos de manifestações (pizza)
 ManifestacoesStatus <- manifestacoes %>% 
-     mutate(StatusManifestacaoRecod = ifelse(statusManifestacao %in%
+     mutate(statusManifestacao = ifelse(statusManifestacao %in%
                                                   c("Aguarda Conclusão do Atendimento",
                                                     "Aguardando conclusão",
                                                     "Cancelada",
@@ -351,24 +357,27 @@ ManifestacoesStatus <- manifestacoes %>%
                                                     %in% c("Respondida",
                                                            "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)"),
                                                     "Finalizada", "Finalizada no ato"))) %>%
-     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
-     group_by(StatusManifestacaoRecod) %>% 
+     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
+     group_by(statusManifestacao) %>% 
      summarise(Total = n())
 
 
 ### Página 1 (segunda parte)
 Mensal <- manifestacoes %>%
      mutate(datareg = format(datareg, "%Y-%m")) %>% 
-     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>%
-     group_by(datareg, municipio_origem) %>% 
+     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>%
+     group_by(datareg, localidadedemandadesc) %>% 
      summarise(Total = n()) %>% 
-     pivot_wider(names_from = municipio_origem, values_from = c(Total)) %>% 
+     pivot_wider(names_from = localidadedemandadesc, values_from = c(Total), values_fill = list(Total = 0)) %>% 
      mutate(Total = sum(`Barra Longa`, `Rio Doce`, `Santa Cruz do Escalvado`, na.rm = TRUE))
 
 
 TempoResolucao <- manifestacoes %>%
-     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
-     filter(ManifestacaoFinalizada == "Finalizada") %>% 
+     mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado"),
+            statusManifestacao == "Finalizada") %>% 
      group_by(datareg) %>% 
      summarise(Média = mean(ndias))
 
@@ -376,12 +385,15 @@ TempoResolucao <- manifestacoes %>%
 
 ### Página 2
 AssuntoTema <- manifestacoes %>%
-     filter(municipio_origem %in% c("Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
-     group_by(ManifestacaoAssunto, ManifestacaoTema, ManifestacaoFinalizada) %>% 
+     mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
+     group_by(ManifestacaoAssunto, ManifestacaoTema, statusManifestacao) %>% 
      summarise(Total = n(),
                Média = round(mean(ndias), digits = 1),
                Máximo = max(ndias)) %>% 
-     pivot_wider(names_from = ManifestacaoFinalizada, values_from = c(Total, Média, Máximo)) %>% 
+     pivot_wider(names_from = statusManifestacao, values_from = c(Total, Média, Máximo)) %>% 
      mutate("Total de manifestações" = sum(Total_Finalizada, `Total_Não finalizada`, na.rm = TRUE)) %>% 
      filter(`Total de manifestações` > 30) %>%
      arrange(ManifestacaoAssunto, desc(`Total de manifestações`))
