@@ -5,6 +5,7 @@ library(openxlsx)
 library(lubridate)
 library(RColorBrewer)
 
+source("filtro327.R", TRUE, encoding = "UTF-8")
 
 # Escolha das colunas a partir do filtro utilizado ------------------------
 
@@ -25,7 +26,7 @@ library(RColorBrewer)
 # [40] "pultimoEncaDE"                  [41] "ultimoEncaPARA"              [42] "DATAHORA_EXP"
 # [43] "DataRegistroAnoMes"             [44] "DataConclusaoAnoMes"         [45] "ManifestacaoFinalizada"
 
-manifestacoes <- filtro1332[c(1, 2, 8, 45, 9, 43, 32, 44, 12, 30, 13, 14, 35, 15, 17)]
+# manifestacoes <- filtro1332[c(1, 2, 8, 45, 9, 43, 32, 44, 12, 30, 13, 14, 35, 15, 17)]
 
 ########## Filtro327.R
 # [1] "datareg"                              [2] "idManifestacao"                         [3] "protocolo"
@@ -373,13 +374,25 @@ Mensal <- manifestacoes %>%
 
 
 TempoResolucao <- manifestacoes %>%
-     mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+     mutate(datareg = format(datareg, "%Y-%m"),
+            statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
                                                                   "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                   "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
      filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado"),
             statusManifestacao == "Finalizada") %>% 
      group_by(datareg) %>% 
-     summarise(Média = mean(ndias))
+     summarise(Média = round(mean(ndias), digits = 1))
+
+
+StatusMes <- manifestacoes %>% 
+     mutate(datareg = format(datareg, "%Y-%m"),
+            statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
+     group_by(datareg, statusManifestacao) %>% 
+     summarise(Total = n()) %>% 
+     pivot_wider(names_from = statusManifestacao, values_from = Total, values_fill = list(Total = 0))
 
 
 
@@ -405,15 +418,17 @@ AssuntoTema <- manifestacoes %>%
 setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes/Relatorios/ReportMensal/Relat202003")
 write.xlsx(list(Cabeçalho = Geral,
                 ManifestacoesStatus = ManifestacoesStatus,
-                MensalResolucao = Mensal,
+                StatusMes = StatusMes,
+                MensalRegistro = Mensal,
                 TempoMedioResolucao = TempoResolucao,
                 AssuntoTema = AssuntoTema),
-           "RptMensal_ARD.xlsx",
+           "RptMensal_ARD_V2.xlsx",
            headerStyle = createStyle(halign = "center", textDecoration = "bold"),
            firstCol = TRUE, firstRow = TRUE, colWidths = "auto", withFilter = TRUE)
 
-rm(AssuntoTema,
-   Geral,
+rm(Geral,
    ManifestacoesStatus,
+   StatusMes,
    Mensal,
-   TempoResolucao)
+   TempoResolucao,
+   AssuntoTema)
