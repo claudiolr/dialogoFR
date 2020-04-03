@@ -4,13 +4,16 @@ library(openxlsx)
 library(lubridate)
 
 
+source("pastaCaminho.R")
 
 # Carregamento e tratamento das bases -------------------------------------
-
 # Filtro 20 - Tratamento --------------------------------------------------
 # Caminho do Filtro 20
 
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/OrganizacaoInformacao/FiltrosSGS/20")
+pasta <- "OrganizacaoInformacao/FiltrosSGS/20"
+setwd(caminho(pasta))
+rm(pasta)
+
 filtro <- read.xlsx("filtro_20_20200327144916.xlsx")
 filtro <- filtro %>% select("idAcao",
                             "titulo",
@@ -104,7 +107,7 @@ matizes <- matizes[c("idAcao",
 # setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/DemEstAnalisesEspecificas/Delib216/ConsolAgendas")
 setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/DemEstAnalisesEspecificas/Delib216/ConsolAgendas")
 
-consolidado <- read.xlsx("PlanConsolidAgenda_202002V1.xlsm", startRow = 5,
+consolidado <- read.xlsx("PlanConsolidAgenda_202003V1.xlsm", startRow = 5,
                          sheet = "Registro de Reuniões", detectDates = TRUE,
                          cols = c(2:3,5:6,12:13, 15)) # Carrega o arquivo selecionando as colunas defininas no código
 
@@ -119,7 +122,7 @@ colnames(consolidado) <- c("titulo",
 consolidado$TotaldeParticipantes <- as.numeric(consolidado$TotaldeParticipantes)
 
 consolidado$municipio <- substr(consolidado$municipio, start = 1, nchar(consolidado$municipio) - 5)
-consolidado$municipio[consolidado$municipio=="Sta. Cruz do Escalvado"] <- "Santa Cruz do Escalvado"
+consolidado$municipio[consolidado$municipio=="Sta. Cruz do Escalvado" | consolidado$municipio==" Santa Cruz do Escalvado"] <- "Santa Cruz do Escalvado"
 consolidado <- consolidado %>% filter(statusAcao %in% c("Realizada", "Planejada"))
 consolidado$idAcao <- as.numeric("")
 consolidado <- add_column(consolidado, "fonte"="Plan")
@@ -137,7 +140,7 @@ reunioes$municipio.x <- ifelse(reunioes$realdatahorainicio < ymd("2019-02-11"), 
 reunioes[c("municipio.y", "UF")] <- NULL
 reunioes <- rename(reunioes, municipio = municipio.x)
 
-
+reunioes$municipio[reunioes$idAcao %in% c(22255, 22263, 22265, 22248, 22267)] <- "Mariana"
 
 # Merge de 'reunioes' e 'municipios' (para pegar dados completos de território)
 reunioes <- merge(reunioes, municipios, by = c("municipio"), all.x = TRUE)
@@ -176,7 +179,7 @@ consolidado <- consolidado[c("idAcao",
 reunioes <- rbind(reunioes, matizes)
 reunioes <- rbind(reunioes, consolidado)
 
-reunioes$totalParticipantes[is.na(reunioes$TotaldeParticipantes)] <- 0
+reunioes$TotaldeParticipantes[is.na(reunioes$TotaldeParticipantes)] <- 0
 
 
 
@@ -221,7 +224,7 @@ geralMesesAnteriores <- reunioes %>%
             "territorio",
             "codIBGE") %>% 
      mutate(realdatahorainicio = format(realdatahorainicio, "%b-%Y")) %>% 
-     filter(realdatahorainicio == "fev-2020" | realdatahorainicio == "jan-2020") %>%
+     filter(realdatahorainicio == "fev-2020" | realdatahorainicio == "mar-2020") %>%
      group_by(UF, realdatahorainicio) %>% 
      summarise(Participantes = sum(TotaldeParticipantes, na.rm = TRUE),
                Reuniões = n()) %>% 
@@ -235,13 +238,14 @@ geral <- merge(geral, geralMesesAnteriores, by = "Tipo")
 rm(bkpAcoes, consolidado, filtro, geralMesesAnteriores, matizes, municipios)
 
 
+Sys.info()
 
-setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/RptMensal/202003")
+# setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/RptMensal/202003")
 setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/RptMensal/202003")
 write.xlsx(list(PlanPrincipal = reunioes,
                 Plan = plan1,
                 Geral = geral),
-           "BDDadCIF202003.xlsx",
+           "BDDadCIF202003_v4.xlsx",
            headerStyle = createStyle(halign = "center", textDecoration = "bold"),
            firstCol = TRUE, firstRow = TRUE, withFilter = TRUE)
 
