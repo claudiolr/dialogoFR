@@ -1,6 +1,4 @@
 library(tidyverse)
-library(stringr)
-library(reshape2)
 library(openxlsx)
 library(lubridate)
 library(RColorBrewer)
@@ -66,112 +64,117 @@ manifestacoes <- filtro327[c(2, 3, 6, 1, 58, 59, 9, 45, 46, 49, 68, 22, 70)]
 ### Por mês/ano do registro
 # Cria resumo com média de dias, máximo de dias e total de manifestações por mês/ano do registro da manifestação
 manifestacoes %>%
-     filter(statusManifestacao != "Cancelada") %>% 
-     mutate(datareg = format(datareg, "%Y-%m")) %>% 
-     group_by(datareg, ManifestacaoFinalizada) %>% 
-     summarise(Média = round(mean(ndias), digits = 1),
-               Total = n()) %>% 
-     ggplot() +
-     geom_col(aes(x = datareg, y = Total, fill = ManifestacaoFinalizada)) +
-     labs(title = "Manifestações registradas por mês", x = "", y = "") + 
-     scale_y_continuous(breaks = seq(0, 30000, 2500)) +
-     scale_fill_manual(name = "Status", values = c("#3d800e", "#b81a2c"), labels = c("Finalizada", "Não finalizada")) +
-     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-           legend.position = "bottom",
-           axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
-           axis.ticks.y = element_line(colour = "gray", size = .5),
-           panel.grid.major.y = element_line(colour = "gray", size = .5),
-           panel.background = element_blank())
+   mutate(datareg = format(datareg, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+   filter(statusManifestacao != "Cancelada") %>% 
+   group_by(datareg, statusManifestacao) %>% 
+   summarise(Média = round(mean(ndias), digits = 1),
+             Total = n()) %>% 
+   ggplot() +
+   geom_col(aes(x = datareg, y = Total, fill = statusManifestacao)) +
+   labs(title = "Manifestações registradas por mês", x = "", y = "") + 
+   scale_y_continuous(breaks = seq(0, 30000, 2500)) +
+   scale_fill_manual(name = "Status", values = c("#3d800e", "#b81a2c"), labels = c("Finalizada", "Não finalizada")) +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         legend.position = "bottom",
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank())
 
 
 ### Por mês/ano da finalização
 manifestacoes %>%
-     mutate(dataconclusao = format(dataconclusao, "%Y-%m")) %>% 
-     filter(ManifestacaoFinalizada == "Finalizada") %>% 
-     filter(!is.na(dataconclusao)) %>% 
-     group_by(dataconclusao, ManifestacaoFinalizada) %>% 
-     summarise(Média = round(mean(ndias, na.rm = TRUE), digits = 1),
-               Total = n()) %>% 
-     ggplot() +
-     geom_col(aes(x = dataconclusao, y = Total, fill = Média)) +
-     labs(title = "Manifestações concluídas por mês,\n por média de tempo de resolução", x = "", y = "") + 
-     scale_y_continuous(breaks = seq(0, 50000, 2500)) +
-     scale_fill_gradient(name = "Média de tempo (dias)", low = "#036121", high = "#c71221") +
-     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-           legend.position = "bottom",
-           axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
-           axis.ticks.y = element_line(colour = "gray", size = .5),
-           panel.grid.major.y = element_line(colour = "gray", size = .5),
-           panel.background = element_blank())
-
-
-### Por mês/ano do registro e tipo
-# manifestacoes %>%
-#      mutate(datareg = format(datareg, "%Y-%m")) %>% 
-#      filter(ManifestacaoFinalizada == "Não finalizada" &
-#                  statusManifestacao != "Cancelada") %>% 
-#      group_by(datareg, ManifestacaoFinalizada, ManifestacaoAssunto) %>% 
-#      summarise(Média = round(mean(ndias), digits = 1),
-#                Total = n()) %>% 
-#      mutate(ManifestacaoAssuntoRecod = ifelse(ManifestacaoAssunto )) %>% 
-#      ggplot() +
-#      geom_col(aes(x = DataRegistroAnoMes, y = Total, fill = ManifestacaoAssunto)) +
-#      theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-#            legend.position = "bottom",
-#            axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
-#            axis.ticks.y = element_line(colour = "gray", size = .5),
-#            panel.grid.major.y = element_line(colour = "gray", size = .5),
-#            panel.background = element_blank())
-
+   mutate(dataconclusao = format(dataconclusao, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+   filter(statusManifestacao == "Finalizada",
+          !is.na(dataconclusao)) %>% 
+   group_by(dataconclusao, statusManifestacao) %>% 
+   summarise(Média = round(mean(ndias, na.rm = TRUE), digits = 1),
+             Total = n()) %>% 
+   ggplot() +
+   geom_col(aes(x = dataconclusao, y = Total, fill = Média)) +
+   labs(title = "Manifestações concluídas por mês,\n por média de tempo de resolução", x = "", y = "") + 
+   scale_y_continuous(breaks = seq(0, 50000, 2500)) +
+   scale_fill_gradient(name = "Média de tempo (dias)", low = "#036121", high = "#c71221") +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         legend.position = "bottom",
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank())
 
 
 ### Assunto
 # Cria resumo com média de dias, máximo de dias e total de manifestações por assunto
-manifestacoes %>% 
-     group_by(ManifestacaoAssunto, ManifestacaoFinalizada) %>% 
+manifestacoes %>%
+   mutate(dataconclusao = format(dataconclusao, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+     group_by(ManifestacaoAssunto, statusManifestacao) %>% 
      summarise(Média = round(mean(ndias, na.rm = TRUE), digits = 1),
                Máximo = max(ndias),
                Total = n()) %>% 
-     pivot_wider(names_from = ManifestacaoFinalizada, values_from = c(Média, Máximo, Total))
+   ggplot(aes(x = ManifestacaoAssunto, y = Total, fill = statusManifestacao)) +
+             geom_col() +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         legend.position = "bottom",
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank())
 
 
 ### Por Tema
 # Cria resumo com média de dias, máximo de dias e total de manifestações por tema
-manifestacoes %>% 
-     group_by(ManifestacaoAssunto, ManifestacaoTema, ManifestacaoFinalizada) %>% 
-     summarise(Média = round(mean(ndias), digits = 1),
-               Máximo = max(ndias),
-               Total = n()) %>% 
-     pivot_wider(names_from = ManifestacaoFinalizada, values_from = c(Média, Máximo, Total))
+manifestacoes %>%
+   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+   group_by(ManifestacaoAssunto, ManifestacaoTema, statusManifestacao) %>% 
+   summarise(Média = round(mean(ndias), digits = 1),
+             Máximo = max(ndias),
+             Total = n()) %>% 
+   pivot_wider(names_from = statusManifestacao, values_from = c(Média, Máximo, Total), values_fill = list(Média = 0, Máximo = 0, Total = 0))
 
 
 ### Por Canais
 # Cria resumo com média de dias, máximo de dias e total de manifestações por canais
-manifestacoes %>% 
-     group_by(manifestacaoOrigem, ManifestacaoFinalizada) %>% 
-     summarise(Média = round(mean(ndias), digits = 1),
-               Máximo = max(ndias),
-               Total = n()) %>% 
-     pivot_wider(names_from = c(ManifestacaoFinalizada), values_from = c(Média, Máximo, Total))
+manifestacoes %>%
+   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          datareg = format(datareg, "%Y-%m")) %>% 
+   group_by(FormaRecebimento, datareg) %>% 
+   summarise(Média = round(mean(ndias), digits = 1),
+             Máximo = max(ndias),
+             Total = n()) %>% 
+   ggplot(aes(x = FormaRecebimento, y = Total, fill = Média)) +
+   geom_col()
 
 
 
 ### Cálculo de Tipos de manifestações
 # Cria resumo com média de dias, máximo de dias e total de manifestações por status da manifestação (finalizada e não finalizada)
 manifestacoes %>% 
-     mutate(StatusManifestacaoRecod = ifelse(statusManifestacao %in%
-                                                  c("Aguarda Conclusão do Atendimento",
-                                                    "Aguardando conclusão",
-                                                    "Cancelada",
-                                                    "Em tratamento",
-                                                    "Em tratamento para Canais de Relacionamento",
-                                                    "Em tratamento para elaboração de resposta escrita",
-                                                    "Em tratamento para resposta final",
-                                                    "Em tratamento para resposta intermediária"), "Não finalizada",
-                                             ifelse(statusManifestacao %in% c("Respondida",
-                                                           "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)"),
-                                                             "Finalizada", "Finalizada no ato"))) %>% 
-     group_by(StatusManifestacaoRecod) %>% 
+   mutate(StatusManifestacao = ifelse(statusManifestacao %in%
+                                         c("Aguarda Conclusão do Atendimento",
+                                           "Aguardando conclusão",
+                                           "Cancelada",
+                                           "Em tratamento",
+                                           "Em tratamento para Canais de Relacionamento",
+                                           "Em tratamento para elaboração de resposta escrita",
+                                           "Em tratamento para resposta final",
+                                           "Em tratamento para resposta intermediária"), "Não finalizada",
+                                      ifelse(statusManifestacao %in% c("Respondida",
+                                                                       "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)"),
+                                             "Finalizada", "Finalizada no ato"))) %>% 
+     group_by(StatusManifestacao) %>% 
      summarise(Quantidade = n(),
                Média = round(mean(ndias), digits = 1),
                Mínimo = min(ndias))
@@ -181,18 +184,23 @@ manifestacoes %>%
 ### Por território e origem da demanda
 # Por território
 manifestacoes %>% 
-     mutate(manifestacaoOrigemRecod = ifelse(manifestacaoOrigem %in% c("0800",
-                                                                       "Contato Ativo 0800/Fale Conosco"), "0800",
-                                             ifelse(manifestacaoOrigem %in% c("Contato Ativo CIAs",
-                                                                              "Postos de Atendimento CIAs"), "CIAs",
-                                                    ifelse(manifestacaoOrigem %in% c("Fale Conosco",
-                                                                                     "Fale Conosco - Portal"), "Portal do usuário",
-                                                           ifelse(manifestacaoOrigem %in% c("Abordagem presencial",
-                                                                                            "Mobilização",
-                                                                                            "Reunião de Diálogo",
-                                                                                            "Eventos"), "Diálogo", "Outros"))))) %>% 
-     group_by(territorio, ManifestacaoFinalizada, manifestacaoOrigemRecod) %>% 
-     summarise(Total = n())
+   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          FormaRecebimento = ifelse(FormaRecebimento %in% c("0800",
+                                                            "Contato Ativo 0800/Fale Conosco"), "0800",
+                                    ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
+                                                                   "Postos de Atendimento CIAs"), "CIAs",
+                                           ifelse(FormaRecebimento %in% c("Fale Conosco",
+                                                                          "Fale Conosco - Portal"), "Portal do usuário",
+                                                  ifelse(FormaRecebimento %in% c("Abordagem presencial",
+                                                                                 "Mobilização",
+                                                                                 "Reunião de Diálogo",
+                                                                                 "Eventos"), "Diálogo", "Outros"))))) %>% 
+   group_by(territorio, FormaRecebimento) %>% 
+   summarise(Total = n()) %>% 
+   ggplot(aes(x = territorio, y = ..count..), fill = FormaRecebimento) +
+   geom_bar()
 
 
      
@@ -214,52 +222,26 @@ manifestacoes %>%
 
 
 
-setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes/Relatorios/ReportMensal/Relat202002")
-write.xlsx(list(Assunto = Assunto,
-                Tema = Tema,
-                Origem = Origem,
-                MesAnoRegistro = MesAnoRegistro,
-                ManifestacoesStatus = ManifestacoesStatus,
-                ManifestacoesStatusGrupo = ManifestacoesStatusGrupo,
-                Territorio = territorio,
-                TerritorioOrigem = territorioOrigem
-),
-"RptMensal.xlsx", which = c("Assunto",
-                            "Tema",
-                            "Canais",
-                            "MesAno",
-                            "ManifestacoesStatus",
-                            "ManifestacoesStatusGrupo"
-),
-headerStyle = createStyle(halign = "center", textDecoration = "bold"),
-firstCol = TRUE, firstRow = TRUE, colWidths = "auto", withFilter = TRUE)
-
-rm(Assunto,
-   Tema,
-   Canais,
-   MesAnoRegistro,
-   ManifestacoesStatus,
-   ManifestacoesStatusGrupo,
-   territorio, 
-   territorioOrigem)
-
-
 
 # Gráficos ----------------------------------------------------------------
 
 manifestacoes %>% 
-     mutate(datareg = format(datareg, "%Y-%m")) %>% 
-     group_by(datareg, ManifestacaoFinalizada) %>% 
-     ggplot() +
-     geom_col(aes(x = datareg, y = mean(ndias), fill = ManifestacaoFinalizada)) +
-     labs(title = "Dias decorridos desde \n o registro da manifestação",
-          x = "Mês/ano", y = "Dias") +
-     scale_y_continuous(breaks = seq(0, 100, 10)) +
-     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-           axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
-           axis.ticks.y = element_line(colour = "gray", size = .5),
-           panel.grid.major.y = element_line(colour = "gray", size = .5),
-           panel.background = element_blank())
+     mutate(datareg = format(datareg, "%Y-%m"),
+            statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                         "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                         "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+   summarise(Total = n(),
+             Média = mean(ndias)) %>% 
+   ggplot(aes(x = datareg, y = Total, fill = statusManifestacao)) +
+   geom_col() +
+   labs(title = "Dias decorridos desde \n o registro da manifestação",
+        x = "Mês/ano", y = "Dias") +
+   scale_y_continuous(breaks = seq(0, 100, 10)) +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank())
 
 
 manifestacoes %>%
@@ -281,16 +263,58 @@ manifestacoes %>%
            panel.background = element_blank())
 
 
+# Número e tempo médio de finalização de manifestações, por mês de finalização
 manifestacoes %>%
-     mutate(dataconclusao = format(dataconclusao, "%Y-%m")) %>% 
-     ggplot(aes(x = dataconclusao, y = ManifestacaoFinalizada)) +
-     geom_col() +
-     labs(title = "Manifestações finalizadas, por mês", x = "", y = "") + 
-     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-           axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
-           axis.ticks.y = element_line(colour = "gray", size = .5),
-           panel.grid.major.y = element_line(colour = "gray", size = .5),
-           panel.background = element_blank())
+   filter(!is.na(dataconclusao) & dataconclusao > ymd("2015-11-05") & dataconclusao < ymd("2020-12-31"),
+          territorio !=  "Não informado") %>% 
+   mutate(dataconclusao = format(dataconclusao, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>%
+   filter(statusManifestacao == "Finalizada") %>% 
+   group_by(dataconclusao, territorio) %>% 
+   summarise(Total = n(),
+             Média = mean(ndias)) %>% 
+   mutate(Tempo = as.factor(ifelse(Média <  15, 1,
+                                      ifelse(Média >= 15 & Média < 27, 2,
+                                             ifelse(Média >= 27 & Média < 77, 3, 4))))) %>% 
+   ggplot(aes(x = dataconclusao, y = Total, fill = Tempo)) +
+   geom_col() +
+   labs(title = "Número e tempo médio de finalização de manifestações,\npor mês de finalização", x = "", y = "") + 
+   scale_fill_manual(labels = c("até 15 dias", "15 a 27 dias", "27 a 77 dias", "Mais de 77 dias"),
+                     values = c('darkgreen', 'darkblue', 'darkorange', 'darkred')) +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         legend.position = "bottom", panel.background = element_blank()) +
+   facet_wrap( ~ territorio, nrow = 7, ncol = 1)
+
+
+# Número e tempo médio de finalização de manifestações, por mês de finalização
+manifestacoes %>%
+   filter(datareg > ymd("2015-11-05") & datareg < ymd("2020-12-31")) %>% 
+   mutate(datareg = format(datareg, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>%
+   filter(statusManifestacao == "Finalizada") %>% 
+   group_by(datareg, statusManifestacao) %>% 
+   summarise(Total = n(),
+             Média = mean(ndias)) %>% 
+   mutate(Tempo = as.factor(ifelse(Média < 15, 1,
+                                      ifelse(Média >= 15 & Média < 27, 2,
+                                             ifelse(Média >= 27 & Média < 77, 3, 4))))) %>% 
+   ggplot(aes(x = datareg, y = Média, fill = Tempo)) +
+   geom_col() +
+   labs(title = "Número e tempo médio de finalização de manifestações,\npor mês de registro", x = "", y = "") + 
+   scale_fill_manual(labels = c("até 15 dias", "15 a 27 dias", "27 a 77 dias", "Mais de 77 dias"),
+                     values = c('darkgreen', 'darkblue', 'darkorange', 'darkred')) +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         legend.position = "bottom", panel.background = element_blank())
 
 
 manifestacoes %>% 
@@ -307,128 +331,261 @@ manifestacoes %>%
      geom_text(aes(label = Soma), position = position_stack (vjust = 0.5), size = 3)
 
 
-# Por territórios específicos ---------------------------------------------
-
-# 1. Mariana: MRN
-# 2. Alto Rio Doce: ARD
-# 3. Calha do Rio Doce: CRD
-# 4. Médio Rio Doce: MRD
-# 5. Baixo Rio Doce: BRD
-# 6. Foz do Rio Doce: FRD
 
 
-### Cabeçalho do relatório
-TotalGeral <- manifestacoes %>%
-     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
-     mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
-                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
-                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
-     group_by(localidadedemandadesc, statusManifestacao) %>%
-     summarise(Total = n()) %>% 
-     pivot_wider(names_from = statusManifestacao, values_from = Total) %>% 
-     mutate(Total = sum(Finalizada, `Não finalizada`)) %>% 
-     mutate(`Taxa de Finalização` = (Finalizada/Total)*100)
+# Análise de cenário ------------------------------------------------------
+
+### Manifestações
+## 1.Total de manifestações registradas de nov/15 até 31/03
+manifestacoes %>% 
+   mutate(MesAtual = ifelse(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31"), 1, 0)) %>% 
+   group_by(territorio) %>% 
+   summarise(Total = n(),
+             MesAtual = sum(MesAtual))
 
 
-TotalMesAtual <- manifestacoes %>%
-     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado"),
-            datareg >= "2020-02-01" & datareg <= "2020-03-31") %>% 
-     mutate(datareg = format(datareg, "%Y-%m")) %>% 
-     group_by(localidadedemandadesc, datareg) %>%
-     summarise(DemandasMes = n()) %>% 
-     pivot_wider(names_from = datareg, values_from = DemandasMes, values_fill = list(DemandasMes = 0))
-
-
-Geral <- merge(TotalMesAtual, TotalGeral, by = "localidadedemandadesc")
-rm(TotalMesAtual, TotalGeral)
-
-
-### Cálculo de Tipos de manifestações (pizza)
-ManifestacoesStatus <- manifestacoes %>% 
-     mutate(statusManifestacao = ifelse(statusManifestacao %in%
-                                                  c("Aguarda Conclusão do Atendimento",
-                                                    "Aguardando conclusão",
-                                                    "Cancelada",
-                                                    "Em tratamento",
-                                                    "Em tratamento para Canais de Relacionamento",
-                                                    "Em tratamento para elaboração de resposta escrita",
-                                                    "Em tratamento para resposta final",
-                                                    "Em tratamento para resposta intermediária"), "Não finalizada",
-                                             ifelse(statusManifestacao
-                                                    %in% c("Respondida",
-                                                           "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)"),
-                                                    "Finalizada", "Finalizada no ato"))) %>%
-     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
-     group_by(statusManifestacao) %>% 
-     summarise(Total = n())
-
-
-### Página 1 (segunda parte)
-Mensal <- manifestacoes %>%
-     mutate(datareg = format(datareg, "%Y-%m")) %>% 
-     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>%
-     group_by(datareg, localidadedemandadesc) %>% 
-     summarise(Total = n()) %>% 
-     pivot_wider(names_from = localidadedemandadesc, values_from = c(Total), values_fill = list(Total = 0)) %>% 
-     mutate(Total = sum(`Barra Longa`, `Rio Doce`, `Santa Cruz do Escalvado`, na.rm = TRUE))
-
-
-TempoResolucao <- manifestacoes %>%
-     mutate(datareg = format(datareg, "%Y-%m"),
-            statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
-                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
-                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
-     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado"),
-            statusManifestacao == "Finalizada") %>% 
-     group_by(datareg) %>% 
-     summarise(Média = round(mean(ndias), digits = 1))
-
-
-StatusMes <- manifestacoes %>% 
-     mutate(datareg = format(datareg, "%Y-%m"),
-            statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
-                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
-                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
-     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
-     group_by(datareg, statusManifestacao) %>% 
-     summarise(Total = n()) %>% 
-     pivot_wider(names_from = statusManifestacao, values_from = Total, values_fill = list(Total = 0))
+manifestacoes %>% 
+   group_by(territorio) %>% 
+   summarise(Total = n())
 
 
 
-### Página 2
-AssuntoTema <- manifestacoes %>%
-     mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
-                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
-                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
-     filter(localidadedemandadesc %in% c("Mariana", "Barra Longa", "Rio Doce", "Santa Cruz do Escalvado")) %>% 
-     group_by(ManifestacaoAssunto, ManifestacaoTema, statusManifestacao) %>% 
-     summarise(Total = n(),
-               Média = round(mean(ndias), digits = 1),
-               Máximo = max(ndias)) %>% 
-     pivot_wider(names_from = statusManifestacao, values_from = c(Total, Média, Máximo)) %>% 
-     mutate("Total de manifestações" = sum(Total_Finalizada, `Total_Não finalizada`, na.rm = TRUE)) %>% 
-     filter(`Total de manifestações` > 30) %>%
-     arrange(ManifestacaoAssunto, desc(`Total de manifestações`))
+## 2. Total de manifestações registradas nos três últimos meses
+#Geral
+manifestacoes %>% 
+   filter(datareg >= ymd("2019-10-01") & datareg <= ymd("2020-03-31")) %>% 
+   mutate(datareg = format(datareg, "%Y-%m")) %>% 
+   group_by(datareg) %>% 
+   summarise(Total = n())
+
+
+# Território (apenas o último mês)
+manifestacoes %>% 
+   filter(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31")) %>% 
+   mutate(datareg = format(datareg, "%b-%Y")) %>% 
+   group_by(datareg, territorio) %>% 
+   summarise(Total = n()) %>% 
+   pivot_wider(names_from = datareg, values_from = Total)
 
 
 
-### Salva os cálculos
-# setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes/Relatorios/ReportMensal/Relat202003")
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes/Relatorios/ReportMensal/Relat202003")
-write.xlsx(list(Cabeçalho = Geral,
-                ManifestacoesStatus = ManifestacoesStatus,
-                StatusMes = StatusMes,
-                MensalRegistro = Mensal,
-                TempoMedioResolucao = TempoResolucao,
-                AssuntoTema = AssuntoTema),
-           "RptMensal_ARD_V2.xlsx",
-           headerStyle = createStyle(halign = "center", textDecoration = "bold"),
-           firstCol = TRUE, firstRow = TRUE, colWidths = "auto", withFilter = TRUE)
+## 3. Status de todas as manifestações (nov/15 até 31/03) – status simplificado (respondidas x não respondidas)
+# Geral
+manifestacoes %>% 
+   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+   group_by(statusManifestacao) %>% 
+   summarise(Total = n()) %>% 
+   mutate(Percentual = round(prop.table(Total), digits = 3)*100)
 
-rm(Geral,
-   ManifestacoesStatus,
-   StatusMes,
-   Mensal,
-   TempoResolucao,
-   AssuntoTema)
+
+# Território
+manifestacoes %>% 
+   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Respondida", "Não respondida")) %>% 
+   group_by(territorio, statusManifestacao, ManifestacaoAssunto) %>% 
+   summarise(Total = n()) %>% 
+   mutate(Percentual = round(prop.table(Total), digits = 3)*100) %>% 
+   pivot_wider(names_from = statusManifestacao, values_from = c(Total, Percentual))
+
+
+
+## 4. Quantidade e % de manifestações por assunto (PG) no último mês (março/20)
+# Geral
+mutate(Assunto = str_replace_all(ManifestacaoAssunto, c("PG001 Levantamento e Cadastro" = "PG01",
+                                                        "PG002 Ressarcimento e Indenização" = "PG02",
+                                                        "PG003 Proteção e Recuperação da Qualidade de Vida dos Povos Indígenas" = "PG03",
+                                                        "PG004 Proteção e Qualidade de Vida de Outras Comunidades Tradicionais" = "PG04",
+                                                        "PG005 Proteção Social" = "PG05",
+                                                        "PG006 Diálogo, Comunicação e Participação Social" = "PG06",
+                                                        "PG007 Assistência aos Animais" = "PG07",
+                                                        "PG008 Reconstrução de Vilas" = "PG08",
+                                                        "PG009 Recuperação da UHE Risoleta Neves" = "PG09",
+                                                        "PG010 Recuperação das Demais Comunidades e Infraestruturas Impactadas" = "PG10",
+                                                        "PG011 Reintegração da Comunidade Escolar" = "PG11",
+                                                        "PG012 Memória Histórica, Cultural e Artística" = "PG12",
+                                                        "PG013 Turismo, Cultura, Esporte e Lazer" = "PG13",
+                                                        "PG014 Saúde Física e Mental da População Impactada" = "PG14",
+                                                        "PG015 Tecnologias Socioeconômicas" = "PG15",
+                                                        "PG016 Retomada das Atividades Aquícolas e Pesqueiras" = "PG16",
+                                                        "PG017 Retomada das Atividades Agropecuárias" = "PG17",
+                                                        "PG018 Diversificação Econômica Regional" = "PG18",
+                                                        "PG019 Micro e Pequenos Negócios" = "PG19",
+                                                        "PG020 Estímulo à Contratação Local" = "PG20",
+                                                        "PG021 Auxílio Financeiro Emergencial" = "PG21",
+                                                        "PG023 Manejo dos Rejeitos" = "PG23",
+                                                        "PG024 Contenção de Rejeitos e Tratamento de Rios" = "PG24",
+                                                        "PG025 Recuperação da Área Ambiental 1" = "PG25",
+                                                        "PG026 Recuperação de APPs" = "PG26",
+                                                        "PG027 Recuperação de Nascentes" = "PG27",
+                                                        "PG028 Conservação da Biodiversidade" = "PG28",
+                                                        "PG029 Recuperação da Fauna Silvestre" = "PG29",
+                                                        "PG030 Fauna e Flora Terrestre Ameaçadas de Extinção" = "PG30",
+                                                        "PG031 Coleta e Tratamento de Esgoto e Destinação de Resíduos Sólidos" = "PG31",
+                                                        "PG032 Tratamento de Água e Captação Alternativa" = "PG32",
+                                                        "PG033 Educação Ambiental" = "PG33",
+                                                        "PG034 Preparação para Emergência Ambiental" = "PG34",
+                                                        "PG037 Gestão de Riscos Ambientais" = "PG37",
+                                                        "PG038 Monitoramento da Bacia do Rio Doce" = "PG38",
+                                                        "PG039 Unidades de Conservação" = "PG39",
+                                                        "PG040 CAR e PRAs" = "PG40",
+                                                        "PG042 Ressarcimento de Gastos Públicos Extraordinários" = "PG42"))) %>% 
+   filter(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31")) %>% 
+   group_by(Assunto) %>% 
+   summarise(Total = n()) %>% 
+   mutate(Percentual = round(prop.table(Total), digits = 3)*100) %>% 
+   arrange(desc(Percentual))
+
+
+
+## 5. Quantidade e % de manifestações por assunto/tema (PG + detalhamento) no último mês (março/20)
+# Geral
+manifestacoes %>% 
+   mutate(AssuntoTema = str_replace_all(manifestacaoAssuntoTema, c("PG001 Levantamento e Cadastro" = "PG01",
+                                                                   "PG002 Ressarcimento e Indenização" = "PG02",
+                                                                   "PG003 Proteção e Recuperação da Qualidade de Vida dos Povos Indígenas" = "PG03",
+                                                                   "PG004 Proteção e Qualidade de Vida de Outras Comunidades Tradicionais" = "PG04",
+                                                                   "PG005 Proteção Social" = "PG05",
+                                                                   "PG006 Diálogo, Comunicação e Participação Social" = "PG06",
+                                                                   "PG007 Assistência aos Animais" = "PG07",
+                                                                   "PG008 Reconstrução de Vilas" = "PG08",
+                                                                   "PG009 Recuperação da UHE Risoleta Neves" = "PG09",
+                                                                   "PG010 Recuperação das Demais Comunidades e Infraestruturas Impactadas" = "PG10",
+                                                                   "PG011 Reintegração da Comunidade Escolar" = "PG11",
+                                                                   "PG012 Memória Histórica, Cultural e Artística" = "PG12",
+                                                                   "PG013 Turismo, Cultura, Esporte e Lazer" = "PG13",
+                                                                   "PG014 Saúde Física e Mental da População Impactada" = "PG14",
+                                                                   "PG015 Tecnologias Socioeconômicas" = "PG15",
+                                                                   "PG016 Retomada das Atividades Aquícolas e Pesqueiras" = "PG16",
+                                                                   "PG017 Retomada das Atividades Agropecuárias" = "PG17",
+                                                                   "PG018 Diversificação Econômica Regional" = "PG18",
+                                                                   "PG019 Micro e Pequenos Negócios" = "PG19",
+                                                                   "PG020 Estímulo à Contratação Local" = "PG20",
+                                                                   "PG021 Auxílio Financeiro Emergencial" = "PG21",
+                                                                   "PG023 Manejo dos Rejeitos" = "PG23",
+                                                                   "PG024 Contenção de Rejeitos e Tratamento de Rios" = "PG24",
+                                                                   "PG025 Recuperação da Área Ambiental 1" = "PG25",
+                                                                   "PG026 Recuperação de APPs" = "PG26",
+                                                                   "PG027 Recuperação de Nascentes" = "PG27",
+                                                                   "PG028 Conservação da Biodiversidade" = "PG28",
+                                                                   "PG029 Recuperação da Fauna Silvestre" = "PG29",
+                                                                   "PG030 Fauna e Flora Terrestre Ameaçadas de Extinção" = "PG30",
+                                                                   "PG031 Coleta e Tratamento de Esgoto e Destinação de Resíduos Sólidos" = "PG31",
+                                                                   "PG032 Tratamento de Água e Captação Alternativa" = "PG32",
+                                                                   "PG033 Educação Ambiental" = "PG33",
+                                                                   "PG034 Preparação para Emergência Ambiental" = "PG34",
+                                                                   "PG037 Gestão de Riscos Ambientais" = "PG37",
+                                                                   "PG038 Monitoramento da Bacia do Rio Doce" = "PG38",
+                                                                   "PG039 Unidades de Conservação" = "PG39",
+                                                                   "PG040 CAR e PRAs" = "PG40",
+                                                                   "PG042 Ressarcimento de Gastos Públicos Extraordinários" = "PG42"))) %>% 
+   filter(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31")) %>% 
+   group_by(AssuntoTema) %>% 
+   summarise(Total = n()) %>% 
+   mutate(Percentual = round(prop.table(Total), digits = 3)*100) %>% 
+   arrange(desc(Percentual))
+
+
+# Território
+manifestacoes %>% 
+   mutate(AssuntoTema = str_replace_all(manifestacaoAssuntoTema, c("PG001 Levantamento e Cadastro" = "PG01",
+                                                                   "PG002 Ressarcimento e Indenização" = "PG02",
+                                                                   "PG003 Proteção e Recuperação da Qualidade de Vida dos Povos Indígenas" = "PG03",
+                                                                   "PG004 Proteção e Qualidade de Vida de Outras Comunidades Tradicionais" = "PG04",
+                                                                   "PG005 Proteção Social" = "PG05",
+                                                                   "PG006 Diálogo, Comunicação e Participação Social" = "PG06",
+                                                                   "PG007 Assistência aos Animais" = "PG07",
+                                                                   "PG008 Reconstrução de Vilas" = "PG08",
+                                                                   "PG009 Recuperação da UHE Risoleta Neves" = "PG09",
+                                                                   "PG010 Recuperação das Demais Comunidades e Infraestruturas Impactadas" = "PG10",
+                                                                   "PG011 Reintegração da Comunidade Escolar" = "PG11",
+                                                                   "PG012 Memória Histórica, Cultural e Artística" = "PG12",
+                                                                   "PG013 Turismo, Cultura, Esporte e Lazer" = "PG13",
+                                                                   "PG014 Saúde Física e Mental da População Impactada" = "PG14",
+                                                                   "PG015 Tecnologias Socioeconômicas" = "PG15",
+                                                                   "PG016 Retomada das Atividades Aquícolas e Pesqueiras" = "PG16",
+                                                                   "PG017 Retomada das Atividades Agropecuárias" = "PG17",
+                                                                   "PG018 Diversificação Econômica Regional" = "PG18",
+                                                                   "PG019 Micro e Pequenos Negócios" = "PG19",
+                                                                   "PG020 Estímulo à Contratação Local" = "PG20",
+                                                                   "PG021 Auxílio Financeiro Emergencial" = "PG21",
+                                                                   "PG023 Manejo dos Rejeitos" = "PG23",
+                                                                   "PG024 Contenção de Rejeitos e Tratamento de Rios" = "PG24",
+                                                                   "PG025 Recuperação da Área Ambiental 1" = "PG25",
+                                                                   "PG026 Recuperação de APPs" = "PG26",
+                                                                   "PG027 Recuperação de Nascentes" = "PG27",
+                                                                   "PG028 Conservação da Biodiversidade" = "PG28",
+                                                                   "PG029 Recuperação da Fauna Silvestre" = "PG29",
+                                                                   "PG030 Fauna e Flora Terrestre Ameaçadas de Extinção" = "PG30",
+                                                                   "PG031 Coleta e Tratamento de Esgoto e Destinação de Resíduos Sólidos" = "PG31",
+                                                                   "PG032 Tratamento de Água e Captação Alternativa" = "PG32",
+                                                                   "PG033 Educação Ambiental" = "PG33",
+                                                                   "PG034 Preparação para Emergência Ambiental" = "PG34",
+                                                                   "PG037 Gestão de Riscos Ambientais" = "PG37",
+                                                                   "PG038 Monitoramento da Bacia do Rio Doce" = "PG38",
+                                                                   "PG039 Unidades de Conservação" = "PG39",
+                                                                   "PG040 CAR e PRAs" = "PG40",
+                                                                   "PG042 Ressarcimento de Gastos Públicos Extraordinários" = "PG42"))) %>% 
+   filter(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31")) %>% 
+   group_by(AssuntoTema, territorio) %>% 
+   summarise(Total = n()) %>% 
+   mutate(Percentual = round(prop.table(Total), digits = 3)*100) %>% 
+   arrange(desc(Percentual))
+
+
+
+
+### Demandas Individuais
+## 1. Total de demandas individuais existentes (nov/15 até 31/03)
+# Geral
+manifestacoes %>% 
+   filter(!is.na(statusdemanda)) %>% 
+   summarise(Total = n())
+
+
+# Território
+manifestacoes %>% 
+   filter(!is.na(statusdemanda)) %>% 
+   group_by(territorio) %>% 
+   summarise(Total = n())
+
+
+
+## 2. Status de todas as demandas individuais (nov/15 até 31/03)
+# Geral
+manifestacoes %>% 
+   filter(!is.na(statusdemanda)) %>% 
+   group_by(statusdemanda) %>% 
+   summarise(Total = n()) %>% 
+   mutate(Percentual = round(prop.table(Total), digits = 3)*100)
+
+
+# Território
+D2Territorio <- manifestacoes %>% 
+   filter(!is.na(statusdemanda)) %>% 
+   group_by(statusdemanda, territorio) %>% 
+   summarise(Total = n()) %>% 
+   pivot_wider(names_from = territorio, values_from = Total, values_fill = list(Total = 0))
+
+
+
+
+## 3. Quantidade de demandas individuais por assunto (PG) e status (nov/15 até 31/03)
+# Geral
+D3Geral <- manifestacoes %>% 
+   filter(!is.na(statusdemanda)) %>% 
+   group_by(statusdemanda, ManifestacaoAssunto) %>% 
+   summarise(Total = n()) %>% 
+   # mutate(Percentual = round(prop.table(Total), digits = 3)*100) %>% 
+   pivot_wider(names_from = statusdemanda, values_from = c(Total), values_fill = list(Total = 0))
+
+
+# Território
+D3Territorio <- manifestacoes %>% 
+   filter(!is.na(statusdemanda)) %>% 
+   group_by(territorio, statusdemanda, ManifestacaoAssunto) %>% 
+   summarise(Total = n()) %>% 
+   pivot_wider(names_from = statusdemanda, values_from = c(Total), values_fill = list(Total = 0))
+
