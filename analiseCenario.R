@@ -1,8 +1,6 @@
 library(tidyverse)
-library(reshape2)
 library(openxlsx)
 library(lubridate)
-library(RColorBrewer)
 library(knitr)
 
 
@@ -45,14 +43,16 @@ cenario <- filtro327[c(2, 3, 6, 21, 22, 70, 88, 1, 58, 59, 9, 44, 45, 46, 49, 82
 ### Manifestações
 ## 1.Total de manifestações registradas de nov/15 até 31/03
 # Geral
-M1Geral <- cenario %>% 
+M1Geral <- 
+        cenario %>% 
      mutate(MesAtual = ifelse(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31"), 1, 0)) %>% 
      summarise(Total = n(),
                MesAtual = sum(MesAtual))
 
 
 # Território
-M1Territorio <- cenario %>% 
+M1Territorio <- 
+        cenario %>% 
      group_by(territorio) %>% 
      summarise(Total = n())
 
@@ -60,15 +60,17 @@ M1Territorio <- cenario %>%
 
 ## 2. Total de manifestações registradas nos três últimos meses
 #Geral
-M2Geral <- cenario %>% 
-     filter(datareg >= ymd("2020-01-01") & datareg <= ymd("2020-03-31")) %>% 
-     mutate(datareg = format(datareg, "%b-%Y")) %>% 
+M2Geral <- 
+        cenario %>% 
+     filter(datareg >= ymd("2019-10-01") & datareg <= ymd("2020-03-31")) %>% 
+     mutate(datareg = format(datareg, "%Y-%m")) %>% 
      group_by(datareg) %>% 
      summarise(Total = n())
 
 
 # Território (apenas o último mês)
-M2Territorio <- cenario %>% 
+M2Territorio <- 
+        cenario %>% 
      filter(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31")) %>% 
      mutate(datareg = format(datareg, "%b-%Y")) %>% 
      group_by(datareg, territorio) %>% 
@@ -79,7 +81,8 @@ M2Territorio <- cenario %>%
 
 ## 3. Status de todas as manifestações (nov/15 até 31/03) – status simplificado (respondidas x não respondidas)
 # Geral
-M3Geral <- cenario %>% 
+M3Geral <- 
+        cenario %>% 
      mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
                                                                   "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                   "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
@@ -89,7 +92,8 @@ M3Geral <- cenario %>%
 
 
 # Território
-M3Territorio <- cenario %>% 
+M3Territorio <- 
+        cenario %>% 
      mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
                                                                   "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                   "Respondida no ato"), "Respondida", "Não respondida")) %>% 
@@ -102,7 +106,8 @@ M3Territorio <- cenario %>%
 
 ## 4. Quantidade e % de manifestações por assunto (PG) no último mês (março/20)
 # Geral
-M4Geral <- cenario %>% 
+M4Geral <- 
+        cenario %>% 
      mutate(Assunto = str_replace_all(ManifestacaoAssunto, c("PG001 Levantamento e Cadastro" = "PG01",
                                                              "PG002 Ressarcimento e Indenização" = "PG02",
                                                              "PG003 Proteção e Recuperação da Qualidade de Vida dos Povos Indígenas" = "PG03",
