@@ -1,8 +1,7 @@
 library(tidyverse)
-library(reshape2)
 library(openxlsx)
 library(lubridate)
-library(RColorBrewer)
+
 
 
 # Carregamento dos filtros ------------------------------------------------
