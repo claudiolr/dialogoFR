@@ -2,29 +2,14 @@ library(tidyverse)
 library(openxlsx)
 library(lubridate)
 library(RColorBrewer)
+require(plotly, quietly = TRUE)
 
-source("filtro327.R", TRUE, encoding = "UTF-8")
 
-# Escolha das colunas a partir do filtro utilizado ------------------------
 
-########## Filtro1332.R
-# [1] "idManifestacao"                  [2] "protocolo"                    [3] "manifestante_codPessoa"
-# [4] "manifestante"                    [5] "SEXO"                         [6] "idFamilia"
-# [7] "statusPostoAtendimento"          [8] "statusManifestacao"           [9] "dataregistro"
-# [10] "datareg"                        [11] "dataLimiteConclusao"         [12] "ndias"
-# [13] "ManifestacaoAssunto"            [14] "ManifestacaoTema"            [15] "localidadedemandadesc"
-# [16] "idterritorio"                   [17] "territorio"                  [18] "comunidade_origem"
-# [19] "localidadedemandadescuf"        [20] "analistaResponsavel"         [21] "manifestacaoCriticidade"
-# [22] "C1manifreldiffin"               [23] "C2manifrelprosaude"          [24] "C3manifsolaliment"
-# [25] "C4manifrelriscalg"              [26] "C5manifsolappisc"            [27] "C8manifreltensuic"
-# [28] "C6manifrelgqtpoeira"            [29] "C7manifamFecmasocila"        [30] "manifestacaoOrigem"
-# [31] "resumo"                         [32] "dataConclusao"               [33] "resumoconclusao"
-# [34] "requerAcaoFutura"               [35] "manifestacaoSubtema"         [36] "responsavelPelaDemanda"
-# [37] "StatusDemanda"                  [38] "UltimoEncaminhamento"        [39] "ultimoEncaData"
-# [40] "pultimoEncaDE"                  [41] "ultimoEncaPARA"              [42] "DATAHORA_EXP"
-# [43] "DataRegistroAnoMes"             [44] "DataConclusaoAnoMes"         [45] "ManifestacaoFinalizada"
+setwd("~/GitHub/dialogoFR")
+source("filtro327.R", FALSE, encoding = "UTF-8")
 
-# manifestacoes <- filtro1332[c(1, 2, 8, 45, 9, 43, 32, 44, 12, 30, 13, 14, 35, 15, 17)]
+options(scipen = 999)
 
 ########## Filtro327.R
 # [1] "datareg"                              [2] "idManifestacao"                         [3] "protocolo"
@@ -55,16 +40,224 @@ source("filtro327.R", TRUE, encoding = "UTF-8")
 # [76] "DATAHORA_EXP"                        [77] "latitude"                              [78] "longitude"
 # [79] "numero_contato_manifestante"         [80] "requerAcaoFutura"                      [81] "responsavelPelaDemanda"
 # [82] "statusdemanda"                       [83] "ultimoEncaminhamentoEnc"               [84] "ultimoEncaDataEnc"
-# [85] "ultimoEncaDEEnc"                     [86] "ultimoEncaPARAEnc"                     [87] "ultimoEncaData"                   
-# [88] "municipioRecod"        
+# [85] "ultimoEncaDEEnc"                     [86] "ultimoEncaPARAEnc"                     [87] "municipioRecod"
 
-manifestacoes <- filtro327[c(2, 3, 6, 1, 58, 59, 9, 45, 46, 49, 68, 22, 70)]
+manifestacoes <- filtro327[c(2, 3, 6, 21, 22, 70, 87, 1, 58, 59, 9, 44, 45, 46, 49, 82, 37, 72, 68)]
 
 
-### Por mês/ano do registro
-# Cria resumo com média de dias, máximo de dias e total de manifestações por mês/ano do registro da manifestação
+setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes/Relatorios/RelatTerritorios")
+
+# Canais de origem e território -------------------------------------------
+
+### Origem das manifestações (canais)
+png("ManifestacoesOrigemCanais.png", width = 1200, height = 600)
+manifestacoes %>% 
+   filter(territorio != "Não informado",
+          datareg >= ymd("2015-11-05")) %>% 
+   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          FormaRecebimento = ifelse(FormaRecebimento %in% c("0800",
+                                                            "Contato Ativo 0800/Fale Conosco"), "0800",
+                                    ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
+                                                                   "Postos de Atendimento CIAs"), "CIAs",
+                                           ifelse(FormaRecebimento %in% c("Fale Conosco",
+                                                                          "Fale Conosco - Portal"), "Portal do usuário",
+                                                  ifelse(FormaRecebimento %in% c("Abordagem presencial",
+                                                                                 "Mobilização",
+                                                                                 "Reunião de Diálogo",
+                                                                                 "Eventos"), "Diálogo", "Outros"))))) %>% 
+   group_by(FormaRecebimento) %>% 
+   summarise(Total = n()) %>% 
+   ggplot(aes(x = FormaRecebimento, y = Total, fill = FormaRecebimento)) +
+   geom_col() +
+   labs(title = "Canais de origem das manifestações",
+        subtitle = "Manifestações registradas desde 05/11/2015",
+        x = "", y = "") +
+   geom_text(aes(label = Total), position = "stack", vjust = -0.3, size = 3) +
+   theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+         plot.subtitle = element_text(size = 10, hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 12, vjust = 0.3, hjust = 1),
+         axis.text.y = element_blank(),
+         legend.position = "bottom",
+         panel.grid.major.y = element_line(colour = "gray", size = .5))
+dev.off()
+
+
+png("ManifestacoesOrigemCanaisTerritorio.png", width = 1200, height = 600)
+manifestacoes %>% 
+   filter(territorio != "Não informado",
+          datareg >= ymd("2015-11-05")) %>% 
+   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          FormaRecebimento = ifelse(FormaRecebimento %in% c("0800",
+                                                            "Contato Ativo 0800/Fale Conosco"), "0800",
+                                    ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
+                                                                   "Postos de Atendimento CIAs"), "CIAs",
+                                           ifelse(FormaRecebimento %in% c("Fale Conosco",
+                                                                          "Fale Conosco - Portal"), "Portal do usuário",
+                                                  ifelse(FormaRecebimento %in% c("Abordagem presencial",
+                                                                                 "Mobilização",
+                                                                                 "Reunião de Diálogo",
+                                                                                 "Eventos"), "Diálogo", "Outros"))))) %>% 
+   group_by(FormaRecebimento, territorio) %>% 
+   summarise(Total = n()) %>% 
+   ggplot(aes(x = FormaRecebimento, y = Total, fill = FormaRecebimento)) +
+   geom_col() +
+   labs(title = "Canais de origem das manifestações",
+        subtitle = "Manifestações registradas desde 05/11/2015",
+        x = "", y = "", fill = "") +
+   geom_text(aes(label = Total), position = "stack", vjust = -0.3, size = 3) +
+   theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+         plot.subtitle = element_text(size = 10, hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 12, vjust = 0.3, hjust = 1),
+         axis.text.y = element_blank(),
+         legend.position = "bottom",
+         panel.grid.major.y = element_line(colour = "gray", size = .5)) +
+   facet_wrap( ~ territorio, nrow = 1, ncol = 6)
+dev.off()
+
+
+# Assuntos agrupados, status e território ---------------------------------
+
+## Totais por Assunto agrupado
+png("ManifestacoesAssuntoStatus.png", width = 1200, height = 600)
 manifestacoes %>%
    mutate(datareg = format(datareg, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          ManifestacaoAssunto = ifelse(ManifestacaoAssunto == "PG001 Levantamento e Cadastro", "PG01",
+                                       ifelse(ManifestacaoAssunto == "PG002 Ressarcimento e Indenização", "PG02",
+                                              ifelse(ManifestacaoAssunto == "Fundação Renova", "Fundação Renova",
+                                                     ifelse(ManifestacaoAssunto == "PG021 Auxílio Financeiro Emergencial", "PG21", "Outros"))))) %>% 
+   group_by(ManifestacaoAssunto, statusManifestacao) %>% 
+   summarise(Total = n()) %>%
+   ggplot(aes(x = ManifestacaoAssunto, y = Total, fill = statusManifestacao)) +
+   geom_col() +
+   labs(title = "Principais assuntos das manifestações, por status",
+        x = "", y = "", fill = "") +
+   geom_text(aes(label = Total), position = "stack", vjust = -0.4, size = 4) +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         legend.position = "bottom",
+         axis.text.x = element_text(angle = 90, size = 9, vjust = 0.5, hjust = 1),
+         axis.text.y = element_blank(),
+         axis.ticks.y = element_blank(),
+         panel.background = element_blank())
+dev.off()
+
+
+png("ManifestacoesAssuntoStatusTerritorio.png", width = 1200, height = 600)
+manifestacoes %>%
+   filter(territorio != "Não informado") %>% 
+   mutate(datareg = format(datareg, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          ManifestacaoAssunto = ifelse(ManifestacaoAssunto == "PG001 Levantamento e Cadastro", "PG01",
+                                       ifelse(ManifestacaoAssunto == "PG002 Ressarcimento e Indenização", "PG02",
+                                              ifelse(ManifestacaoAssunto == "Fundação Renova", "Fundação Renova",
+                                                     ifelse(ManifestacaoAssunto == "PG021 Auxílio Financeiro Emergencial", "PG21", "Outros"))))) %>% 
+   group_by(ManifestacaoAssunto, statusManifestacao, territorio) %>% 
+   summarise(Total = n()) %>%
+   ggplot(aes(x = ManifestacaoAssunto, y = Total, fill = statusManifestacao)) +
+   geom_col() +
+   labs(title = "Principais assuntos das manifestações, por status",
+        x = "", y = "", fill = "", fill = "") +
+   # geom_text(aes(label = Total), position = "stack", vjust = -0.4, size = 4) +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         legend.position = "bottom",
+         axis.text.x = element_text(angle = 90, size = 9, vjust = 0.5, hjust = 1),
+         axis.text.y = element_blank()) +
+   facet_wrap( ~ territorio, nrow = 1, ncol = 7)
+dev.off()
+
+
+
+
+# Canais de origem, mês e território ------------------------------------
+
+# Formas de recebimento da manifestação por mês (%)
+png("ManifestacoesFormaRecebimentoMesPercentual.png", width = 1200, height = 600)
+manifestacoes %>% 
+   filter(territorio != "Não informado",
+          datareg >= ymd("2015-11-05")) %>% 
+   mutate(datareg = format(datareg, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          FormaRecebimento = ifelse(FormaRecebimento %in% c("0800",
+                                                            "Contato Ativo 0800/Fale Conosco"), "0800",
+                                    ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
+                                                                   "Postos de Atendimento CIAs"), "CIAs",
+                                           ifelse(FormaRecebimento %in% c("Fale Conosco",
+                                                                          "Fale Conosco - Portal"), "Portal do usuário",
+                                                  ifelse(FormaRecebimento %in% c("Abordagem presencial",
+                                                                                 "Mobilização",
+                                                                                 "Reunião de Diálogo",
+                                                                                 "Eventos"), "Diálogo", "Outros"))))) %>% 
+   group_by(datareg, FormaRecebimento) %>% 
+   summarise(Total = n()) %>% 
+   mutate(Percentual = (Total/sum(Total)*100)) %>% 
+   ggplot(aes(x = datareg, y = Percentual, fill = FormaRecebimento)) + 
+   geom_col() +
+   labs(title = "Formas de recebimento das manifestações, por mês",
+        subtitle = "Percentual por canais de diálogo",
+        x = "", y = "Percentual") +
+   theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+         plot.subtitle = element_text(size = 12, hjust = 0.5),
+         legend.position = "bottom",
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank())
+dev.off()   
+
+
+png("ManifestacoesFormaRecebimentoMesTotal.png", width = 1200, height = 600)
+manifestacoes %>% 
+   filter(territorio != "Não informado",
+          datareg >= ymd("2015-11-05")) %>% 
+   mutate(datareg = format(datareg, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          FormaRecebimento = ifelse(FormaRecebimento %in% c("0800",
+                                                            "Contato Ativo 0800/Fale Conosco"), "0800",
+                                    ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
+                                                                   "Postos de Atendimento CIAs"), "CIAs",
+                                           ifelse(FormaRecebimento %in% c("Fale Conosco",
+                                                                          "Fale Conosco - Portal"), "Portal do usuário",
+                                                  ifelse(FormaRecebimento %in% c("Abordagem presencial",
+                                                                                 "Mobilização",
+                                                                                 "Reunião de Diálogo",
+                                                                                 "Eventos"), "Diálogo", "Outros"))))) %>% 
+   group_by(datareg, FormaRecebimento) %>% 
+   summarise(Total = n()) %>% 
+   mutate(Percentual = (Total/sum(Total)*100)) %>% 
+   ggplot(aes(x = datareg, y = Total, fill = FormaRecebimento)) + 
+   geom_col() +
+   labs(title = "Formas de recebimento das manifestações, por mês",
+        subtitle = "Total por canais de diálogo",
+        x = "", y = "Total") +
+   theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+         plot.subtitle = element_text(size = 12, hjust = 0.5),
+         legend.position = "bottom",
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank())
+dev.off()   
+
+
+
+# Registradas por mês, status e território --------------------------------------
+png("ManifestacoesMesStatus_DataRegistro.png", width = 1200, height = 600)
+manifestacoes %>%
+   filter(datareg >= ymd("2015-11-03"),
+          territorio != "Não informado") %>% 
+   mutate(datareg = format(datareg, "%Y/%m"),
           statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
                                                                 "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                 "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
@@ -74,88 +267,156 @@ manifestacoes %>%
              Total = n()) %>% 
    ggplot() +
    geom_col(aes(x = datareg, y = Total, fill = statusManifestacao)) +
-   labs(title = "Manifestações registradas por mês", x = "", y = "") + 
-   scale_y_continuous(breaks = seq(0, 30000, 2500)) +
+   labs(title = "Manifestações registradas por mês", subtitle = "Finalizadas e não finalizadas",
+        x = "", y = "", fill = "Status da manifestação") + 
+   scale_y_continuous(breaks = seq(0, 30000, 5000)) +
+   # scale_x_date(date_labels = "%m/%d", date_breaks = "2 weeks") +
    scale_fill_manual(name = "Status", values = c("#3d800e", "#b81a2c"), labels = c("Finalizada", "Não finalizada")) +
    theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         plot.subtitle = element_text(size = 12, hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
          legend.position = "bottom",
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank())
+dev.off()
+
+
+png("ManifestacoesMesStatus_DataRegistroTerritorio.png", width = 1200, height = 1800)
+manifestacoes %>% 
+   filter(datareg >= ymd("2015-11-03"),
+          territorio != "Não informado") %>% 
+   mutate(datareg = format(datareg, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+   group_by(datareg, statusManifestacao, territorio) %>% 
+   summarise(Total = n(),
+             Média = mean(ndias)) %>% 
+   ggplot(aes(x = datareg, y = Total, fill = statusManifestacao)) +
+   geom_col() +
+   labs(title = "Manifestações registradas, por mês e status",
+        x = "", y = "", fill = "Status da manifestação") +
+   scale_y_continuous(breaks = seq(0, 30000, 6000)) +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
          axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
          axis.ticks.y = element_line(colour = "gray", size = .5),
          panel.grid.major.y = element_line(colour = "gray", size = .5),
-         panel.background = element_blank())
+         panel.background = element_blank(),
+         legend.position = "bottom")+
+   facet_wrap( ~ territorio, nrow = 7, ncol = 1)
+dev.off()
 
 
-### Por mês/ano da finalização
-manifestacoes %>%
+
+# Concluídas por mês, status e território ---------------------------------
+png("ManifestacoesConcluidas_MesConclusao.png", width = 1200, height = 600)
+manifestacoes %>% 
+   filter(dataconclusao >= ymd("2015-11-03") & dataconclusao <= Sys.Date() & !is.na(dataconclusao),
+          territorio != "Não informado") %>% 
    mutate(dataconclusao = format(dataconclusao, "%Y-%m"),
           statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
                                                                 "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                 "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
-   filter(statusManifestacao == "Finalizada",
-          !is.na(dataconclusao)) %>% 
-   group_by(dataconclusao, statusManifestacao) %>% 
-   summarise(Média = round(mean(ndias, na.rm = TRUE), digits = 1),
-             Total = n()) %>% 
+   filter(statusManifestacao == "Finalizada") %>% 
+   group_by(dataconclusao, territorio) %>% 
+   summarise(Total = n(),
+             Média = mean(ndias)) %>% 
+   ggplot(aes(x = dataconclusao, y = Total)) +
+   geom_col() +
+   labs(title = "Manifestações concluídas, por mês de conclusão",
+        x = "", y = "") +
+   scale_y_continuous(breaks = seq(0, 30000, 6000)) +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank(),
+         legend.position = "bottom")
+dev.off()
+
+
+png("ManifestacoesConcluidas_MesConclusaoTerritorio.png", width = 1200, height = 1800)
+manifestacoes %>% 
+   filter(dataconclusao >= ymd("2015-11-03") &
+             dataconclusao <= Sys.Date() &
+             !is.na(dataconclusao),
+          territorio != "Não informado") %>% 
+   mutate(dataconclusao = format(dataconclusao, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+   filter(statusManifestacao == "Finalizada") %>% 
+   group_by(dataconclusao, territorio) %>% 
+   summarise(Total = n(),
+             Média = mean(ndias)) %>% 
+   ggplot(aes(x = dataconclusao, y = Total)) +
+   geom_col() +
+   labs(title = "Manifestações concluídas, por mês de conclusão",
+        x = "", y = "") +
+   scale_y_continuous(breaks = seq(0, 30000, 6000)) +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank(),
+         legend.position = "bottom") +
+   facet_wrap( ~ territorio, nrow = 7, ncol = 1)
+dev.off()
+
+
+
+
+
+## Não finalizadas, por mês de registro e território
+png("ManifestacoesNaoFinalizadas_MesRegistro.png", width = 1200, height = 600)
+manifestacoes %>%
+   filter(datareg >= ymd("2015-11-05")) %>% 
+   mutate(datareg = format(datareg, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+   filter(statusManifestacao == "Não finalizada") %>% 
+   group_by(datareg, ManifestacaoAssunto, territorio) %>% 
+   summarise(Total = n(),
+             Média = mean(ndias)) %>% 
    ggplot() +
-   geom_col(aes(x = dataconclusao, y = Total, fill = Média)) +
-   labs(title = "Manifestações concluídas por mês,\n por média de tempo de resolução", x = "", y = "") + 
-   scale_y_continuous(breaks = seq(0, 50000, 2500)) +
-   scale_fill_gradient(name = "Média de tempo (dias)", low = "#036121", high = "#c71221") +
+   geom_col(aes(x = datareg, y = Total)) +
+   labs(title = "Manifestações não finalizadas, por mês de registro",
+        x = "", y = "") +
+   # scale_y_continuous(breaks = seq(0, 60000, 5000)) +
    theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-         legend.position = "bottom",
          axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
          axis.ticks.y = element_line(colour = "gray", size = .5),
          panel.grid.major.y = element_line(colour = "gray", size = .5),
          panel.background = element_blank())
+dev.off()
 
 
-### Assunto
-# Cria resumo com média de dias, máximo de dias e total de manifestações por assunto
+
+png("ManifestacoesNaoFinalizadas_MesRegistroTerritorio.png", width = 1200, height = 1800)
 manifestacoes %>%
-   mutate(dataconclusao = format(dataconclusao, "%Y-%m"),
+   filter(datareg >= ymd("2015-11-05")) %>% 
+   mutate(datareg = format(datareg, "%Y-%m"),
           statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
                                                                 "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                 "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
-     group_by(ManifestacaoAssunto, statusManifestacao) %>% 
-     summarise(Média = round(mean(ndias, na.rm = TRUE), digits = 1),
-               Máximo = max(ndias),
-               Total = n()) %>% 
-   ggplot(aes(x = ManifestacaoAssunto, y = Total, fill = statusManifestacao)) +
-             geom_col() +
+   filter(statusManifestacao == "Não finalizada") %>% 
+   group_by(datareg, ManifestacaoAssunto, territorio) %>% 
+   summarise(Total = n(),
+             Média = mean(ndias)) %>% 
+   ggplot() +
+   geom_col(aes(x = datareg, y = Total)) +
+   labs(title = "Manifestações não finalizadas, por mês de registro",
+        x = "", y = "") +
+   # scale_y_continuous(breaks = seq(0, 60000, 5000)) +
    theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-         legend.position = "bottom",
          axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
          axis.ticks.y = element_line(colour = "gray", size = .5),
          panel.grid.major.y = element_line(colour = "gray", size = .5),
-         panel.background = element_blank())
-
-
-### Por Tema
-# Cria resumo com média de dias, máximo de dias e total de manifestações por tema
-manifestacoes %>%
-   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
-                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
-                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
-   group_by(ManifestacaoAssunto, ManifestacaoTema, statusManifestacao) %>% 
-   summarise(Média = round(mean(ndias), digits = 1),
-             Máximo = max(ndias),
-             Total = n()) %>% 
-   pivot_wider(names_from = statusManifestacao, values_from = c(Média, Máximo, Total), values_fill = list(Média = 0, Máximo = 0, Total = 0))
-
-
-### Por Canais
-# Cria resumo com média de dias, máximo de dias e total de manifestações por canais
-manifestacoes %>%
-   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
-                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
-                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
-          datareg = format(datareg, "%Y-%m")) %>% 
-   group_by(FormaRecebimento, datareg) %>% 
-   summarise(Média = round(mean(ndias), digits = 1),
-             Máximo = max(ndias),
-             Total = n()) %>% 
-   ggplot(aes(x = FormaRecebimento, y = Total, fill = Média)) +
-   geom_col()
+         panel.background = element_blank()) +
+   facet_wrap( ~ territorio, nrow = 7, ncol = 1)
+dev.off()
 
 
 
@@ -174,96 +435,43 @@ manifestacoes %>%
                                       ifelse(statusManifestacao %in% c("Respondida",
                                                                        "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)"),
                                              "Finalizada", "Finalizada no ato"))) %>% 
-     group_by(StatusManifestacao) %>% 
-     summarise(Quantidade = n(),
-               Média = round(mean(ndias), digits = 1),
-               Mínimo = min(ndias))
+   group_by(StatusManifestacao) %>% 
+   summarise(Quantidade = n(),
+             Média = round(mean(ndias), digits = 1),
+             Mínimo = min(ndias))
 
 
 
-### Por território e origem da demanda
-# Por território
-manifestacoes %>% 
-   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
-                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
-                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
-          FormaRecebimento = ifelse(FormaRecebimento %in% c("0800",
-                                                            "Contato Ativo 0800/Fale Conosco"), "0800",
-                                    ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
-                                                                   "Postos de Atendimento CIAs"), "CIAs",
-                                           ifelse(FormaRecebimento %in% c("Fale Conosco",
-                                                                          "Fale Conosco - Portal"), "Portal do usuário",
-                                                  ifelse(FormaRecebimento %in% c("Abordagem presencial",
-                                                                                 "Mobilização",
-                                                                                 "Reunião de Diálogo",
-                                                                                 "Eventos"), "Diálogo", "Outros"))))) %>% 
-   group_by(territorio, FormaRecebimento) %>% 
-   summarise(Total = n()) %>% 
-   ggplot(aes(x = territorio, y = ..count..), fill = FormaRecebimento) +
-   geom_bar()
-
-
-     
-# Por origem da demanda
+# Tempo médio de finalização, mês de finalização --------------------------
+png("ManifestacoesFinalizadasTempoMedio.png", width = 1200, height = 600)
 manifestacoes %>%
-     mutate(FormaRecebimentoRecod = ifelse(FormaRecebimento %in% c("0800",
-                                                                       "Contato Ativo 0800/Fale Conosco"), "0800",
-                                             ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
-                                                                              "Postos de Atendimento CIAs"), "CIAs",
-                                                    ifelse(FormaRecebimento %in% c("Fale Conosco",
-                                                                                     "Fale Conosco - Portal"), "Portal do usuário",
-                                                           ifelse(FormaRecebimento %in% c("Abordagem presencial",
-                                                                                            "Mobilização",
-                                                                                            "Reunião de Diálogo",
-                                                                                            "Eventos"), "Diálogo", "Outros"))))) %>% 
-     group_by(territorio, FormaRecebimentoRecod, ManifestacaoFinalizada) %>% 
-     summarise(Total = n()) %>% 
-     pivot_wider(names_from = ManifestacaoFinalizada, values_from = Total)
-
-
-
-
-# Gráficos ----------------------------------------------------------------
-
-manifestacoes %>% 
-     mutate(datareg = format(datareg, "%Y-%m"),
-            statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
-                                                                         "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
-                                                                         "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+   filter(!is.na(dataconclusao) & dataconclusao > ymd("2015-11-05") & dataconclusao < ymd("2020-12-31"),
+          territorio !=  "Não informado") %>% 
+   mutate(dataconclusao = format(dataconclusao, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>%
+   filter(statusManifestacao == "Finalizada") %>% 
+   group_by(dataconclusao) %>% 
    summarise(Total = n(),
              Média = mean(ndias)) %>% 
-   ggplot(aes(x = datareg, y = Total, fill = statusManifestacao)) +
+   mutate(Tempo = as.factor(ifelse(Média <  15, 1,
+                                   ifelse(Média >= 15 & Média < 27, 2,
+                                          ifelse(Média >= 27 & Média < 77, 3, 4))))) %>% 
+   ggplot(aes(x = dataconclusao, y = Total, fill = Tempo)) +
    geom_col() +
-   labs(title = "Dias decorridos desde \n o registro da manifestação",
-        x = "Mês/ano", y = "Dias") +
-   scale_y_continuous(breaks = seq(0, 100, 10)) +
+   labs(title = "Número e tempo médio de finalização de manifestações,\npor mês de finalização", x = "", y = "") + 
+   scale_fill_manual(labels = c("até 15 dias", "15 a 27 dias", "27 a 77 dias", "Mais de 77 dias"),
+                     values = c('darkgreen', 'darkblue', 'darkorange', 'darkred')) +
    theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
          axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
          axis.ticks.y = element_line(colour = "gray", size = .5),
          panel.grid.major.y = element_line(colour = "gray", size = .5),
-         panel.background = element_blank())
+         legend.position = "bottom", panel.background = element_blank())
+dev.off()
 
 
-manifestacoes %>%
-     mutate(dataconclusao = format(dataconclusao, "%Y-%m"),
-            statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
-                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
-                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
-     filter(statusManifestacao != "Cancelada" & !is.na(statusManifestacao),
-            !is.na(dataconclusao)) %>% 
-     ggplot() +
-     geom_bar(aes(x = dataconclusao, fill = statusManifestacao)) +
-     labs(title = "Dias decorridos desde \n o registro da manifestação",
-          x = "Mês/ano", y = "Dias") +
-     scale_y_continuous(breaks = seq(0, 60000, 5000)) +
-     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-           axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
-           axis.ticks.y = element_line(colour = "gray", size = .5),
-           panel.grid.major.y = element_line(colour = "gray", size = .5),
-           panel.background = element_blank())
-
-
-# Número e tempo médio de finalização de manifestações, por mês de finalização
+png("ManifestacoesFinalizadasTempoMedioTerritorio.png", width = 1200, height = 1800)
 manifestacoes %>%
    filter(!is.na(dataconclusao) & dataconclusao > ymd("2015-11-05") & dataconclusao < ymd("2020-12-31"),
           territorio !=  "Não informado") %>% 
@@ -276,8 +484,8 @@ manifestacoes %>%
    summarise(Total = n(),
              Média = mean(ndias)) %>% 
    mutate(Tempo = as.factor(ifelse(Média <  15, 1,
-                                      ifelse(Média >= 15 & Média < 27, 2,
-                                             ifelse(Média >= 27 & Média < 77, 3, 4))))) %>% 
+                                   ifelse(Média >= 15 & Média < 27, 2,
+                                          ifelse(Média >= 27 & Média < 77, 3, 4))))) %>% 
    ggplot(aes(x = dataconclusao, y = Total, fill = Tempo)) +
    geom_col() +
    labs(title = "Número e tempo médio de finalização de manifestações,\npor mês de finalização", x = "", y = "") + 
@@ -289,9 +497,12 @@ manifestacoes %>%
          panel.grid.major.y = element_line(colour = "gray", size = .5),
          legend.position = "bottom", panel.background = element_blank()) +
    facet_wrap( ~ territorio, nrow = 7, ncol = 1)
+dev.off()
 
 
-# Número e tempo médio de finalização de manifestações, por mês de finalização
+
+# Tempo médio de finalização, por grupos e mês de registro ----------------
+png("ManifestacoesFinalizadasTempoMedio_MesRegistro.png", width = 1200, height = 600)
 manifestacoes %>%
    filter(datareg > ymd("2015-11-05") & datareg < ymd("2020-12-31")) %>% 
    mutate(datareg = format(datareg, "%Y-%m"),
@@ -303,8 +514,8 @@ manifestacoes %>%
    summarise(Total = n(),
              Média = mean(ndias)) %>% 
    mutate(Tempo = as.factor(ifelse(Média < 15, 1,
-                                      ifelse(Média >= 15 & Média < 27, 2,
-                                             ifelse(Média >= 27 & Média < 77, 3, 4))))) %>% 
+                                   ifelse(Média >= 15 & Média < 27, 2,
+                                          ifelse(Média >= 27 & Média < 77, 3, 4))))) %>% 
    ggplot(aes(x = datareg, y = Média, fill = Tempo)) +
    geom_col() +
    labs(title = "Número e tempo médio de finalização de manifestações,\npor mês de registro", x = "", y = "") + 
@@ -315,22 +526,119 @@ manifestacoes %>%
          axis.ticks.y = element_line(colour = "gray", size = .5),
          panel.grid.major.y = element_line(colour = "gray", size = .5),
          legend.position = "bottom", panel.background = element_blank())
+dev.off()
 
 
+# Tempo médio de finalização, por grupos e mês de conclusão ----------------
+png("ManifestacoesFinalizadasTempoMedio_MesFinalizacao.png", width = 1200, height = 600)
+manifestacoes %>%
+   filter(dataconclusao > ymd("2015-11-05") & dataconclusao < ymd("2020-12-31"),
+          !is.na(dataconclusao)) %>% 
+   mutate(dataconclusao = format(dataconclusao, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada")) %>%
+   filter(statusManifestacao == "Finalizada") %>% 
+   group_by(dataconclusao, statusManifestacao) %>% 
+   summarise(Total = n(),
+             Média = mean(ndias)) %>% 
+   mutate(Tempo = as.factor(ifelse(Média < 15, 1,
+                                   ifelse(Média >= 15 & Média < 27, 2,
+                                          ifelse(Média >= 27 & Média < 77, 3, 4))))) %>% 
+   ggplot(aes(x = dataconclusao, y = Média, fill = Tempo)) +
+   geom_col() +
+   labs(title = "Número e tempo médio de finalização de manifestações,\npor mês de finalização", x = "", y = "") + 
+   scale_fill_manual(labels = c("até 15 dias", "15 a 27 dias", "27 a 77 dias", "Mais de 77 dias"),
+                     values = c('darkgreen', 'darkblue', 'darkorange', 'darkred')) +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         legend.position = "bottom", panel.background = element_blank())
+dev.off()
+
+
+# Demandas por status -----------------------------------------------------
+png("DemandasStatus.png", width = 1200, height = 600)
 manifestacoes %>% 
-     ggplot(aes(x = territorio, y = Soma, fill = ManifestacaoOrigemRecod)) +
-     geom_bar(stat = "identity",
-              position = "fill") + 
-     theme_minimal() +
-     scale_fill_brewer(palette = "Set2") +
-     labs(title = "Manifestações regitradas por território", x = "", y = "") + 
-     theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
-           axis.text.x = element_text(angle = 45, size = 8, vjust = 1, hjust = 1, face = "bold"),
-           axis.ticks.y = element_line(colour = "gray", size = .5),
-           panel.grid.major.y = element_line(colour = "gray", size = .5)) +
-     geom_text(aes(label = Soma), position = position_stack (vjust = 0.5), size = 3)
+   mutate(ultimoencaData = format(ultimoencaData, "%Y-%m")) %>% 
+   filter(!is.na(statusdemanda)) %>% 
+   group_by(statusdemanda) %>% 
+   summarise(Total = n()) %>% 
+   arrange(desc(Total)) %>% 
+   ggplot() +
+   geom_col(aes(x = statusdemanda, y = Total, fill = statusdemanda)) +
+   labs(title = "Demandas por status",
+        x = "", y = "", fill = "Status da demanda") +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         axis.text.x = element_blank(),
+         legend.position = "bottom", panel.background = element_blank())
+   
+dev.off()
 
 
+png("DemandasStatusTerritorio.png", width = 1200, height = 600)
+manifestacoes %>% 
+   mutate(ultimoencaData = format(ultimoencaData, "%Y-%m")) %>% 
+   filter(!is.na(statusdemanda),
+          territorio != "Não informado") %>% 
+   group_by(statusdemanda, territorio) %>% 
+   summarise(Total = n()) %>% 
+   arrange(desc(Total)) %>% 
+   ggplot() +
+   geom_col(aes(x = statusdemanda, y = Total, fill = statusdemanda)) +
+   labs(title = "Demandas por status",
+        x = "", y = "", fill = "Status da demanda") +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         axis.text.x = element_blank(),
+         legend.position = "bottom") +
+   facet_wrap( ~ territorio, nrow = 1, ncol = 7)
+dev.off()
+
+
+
+
+# Demandas por status, mês ------------------------------------------------
+png("DemandasStatusMes.png", width = 1200, height = 600)
+manifestacoes %>% 
+   mutate(ultimoencaData = format(ultimoencaData, "%Y-%m")) %>% 
+   filter(!is.na(statusdemanda),
+          !is.na(ultimoencaData)) %>% 
+   group_by(statusdemanda, ultimoencaData) %>% 
+   summarise(Total = n()) %>% 
+   arrange(desc(Total)) %>% 
+   ggplot() +
+   geom_col(aes(x = ultimoencaData, y = Total, fill = statusdemanda)) +
+   labs(title = "Demandas por status",
+        subtitle = "Data do último encaminhamento",
+        x = "", y = "", fill = "") +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         plot.subtitle = element_text(size = 12, face = "bold", hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         legend.position = "bottom")
+dev.off()
+
+
+png("DemandasStatusMesTerritorio.png", width = 1200, height = 1800)
+manifestacoes %>% 
+   mutate(ultimoencaData = format(ultimoencaData, "%Y-%m")) %>% 
+   filter(!is.na(statusdemanda),
+          !is.na(ultimoencaData),
+          territorio != "Não informado") %>% 
+   group_by(statusdemanda, ultimoencaData, territorio) %>% 
+   summarise(Total = n()) %>% 
+   arrange(desc(Total)) %>% 
+   ggplot() +
+   geom_col(aes(x = ultimoencaData, y = Total, fill = statusdemanda)) +
+   labs(title = "Demandas por status",
+        subtitle = "Data do último encaminhamento",
+        x = "", y = "", fill = "") +
+   theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
+         plot.subtitle = element_text(size = 12, face = "bold", hjust = 0.5),
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         legend.position = "bottom") +
+   facet_wrap( ~ territorio, nrow = 7, ncol = 1)
+dev.off()
 
 
 # Análise de cenário ------------------------------------------------------
@@ -394,7 +702,7 @@ manifestacoes %>%
 
 ## 4. Quantidade e % de manifestações por assunto (PG) no último mês (março/20)
 # Geral
-mutate(Assunto = str_replace_all(ManifestacaoAssunto, c("PG001 Levantamento e Cadastro" = "PG01",
+manifestacoes %>% mutate(Assunto = str_replace_all(ManifestacaoAssunto, c("PG001 Levantamento e Cadastro" = "PG01",
                                                         "PG002 Ressarcimento e Indenização" = "PG02",
                                                         "PG003 Proteção e Recuperação da Qualidade de Vida dos Povos Indígenas" = "PG03",
                                                         "PG004 Proteção e Qualidade de Vida de Outras Comunidades Tradicionais" = "PG04",
