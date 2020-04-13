@@ -6,8 +6,7 @@ library(lubridate)
 
 # Carregamento dos filtros ------------------------------------------------
 setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/OrganizacaoInformacao/FiltrosSGS/327")
-filtro327 <- read.xlsx("filtro_327_20200329201522.xlsx")
-
+filtro327 <- read.xlsx("filtro_327_20200412182515.xlsx")
 
 
 # Tratamento das variáveis ------------------------------------------------
@@ -21,7 +20,7 @@ filtro327$dataconclusao <- as.Date(filtro327$dataconclusao, origin = "1899-12-30
 # ndias = dataconclusao - datereg
 filtro327$ndias <- ifelse(is.na(filtro327$dataconclusao), ymd("2020-03-31") - ymd(filtro327$datareg),
                           ymd(filtro327$dataconclusao) - ymd(filtro327$datareg))
-filtro327$ultimoEncaData <- as.Date(filtro327$ultimoEncaData, origin = "1899-12-30")
+filtro327$ultimoencaData <- as.Date(filtro327$ultimoencaData, tryFormats = c("%d/%m/%Y"))
 
 
 ### Quebra variável de assunto/tema em duas: Assunto e Tema
