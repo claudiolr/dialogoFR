@@ -21,6 +21,7 @@ filtro327$dataconclusao <- as.Date(filtro327$dataconclusao, origin = "1899-12-30
 filtro327$ndias <- ifelse(is.na(filtro327$dataconclusao), ymd("2020-03-31") - ymd(filtro327$datareg),
                           ymd(filtro327$dataconclusao) - ymd(filtro327$datareg))
 filtro327$ultimoencaData <- as.Date(filtro327$ultimoencaData, tryFormats = c("%d/%m/%Y"))
+filtro327$ultimoEncaDataEnc <- as.Date(filtro327$ultimoEncaDataEnc, origin = "1899-12-30")
 
 
 ### Quebra variável de assunto/tema em duas: Assunto e Tema
