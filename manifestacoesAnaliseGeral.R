@@ -47,13 +47,14 @@ manifestacoes <- filtro327[c(2, 3, 6, 21, 22, 70, 87, 1, 58, 59, 9, 44, 45, 46, 
 
 setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes/Relatorios/RelatTerritorios")
 
+
+
 # Canais de origem e território -------------------------------------------
 
 ### Origem das manifestações (canais)
 png("ManifestacoesOrigemCanais.png", width = 1200, height = 600)
 manifestacoes %>% 
-   filter(territorio != "Não informado",
-          datareg >= ymd("2015-11-05")) %>% 
+   filter(datareg >= ymd("2015-11-05")) %>% 
    mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
                                                                 "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                 "Respondida no ato"), "Finalizada", "Não finalizada"),
@@ -74,13 +75,13 @@ manifestacoes %>%
    labs(title = "Canais de origem das manifestações",
         subtitle = "Manifestações registradas desde 05/11/2015",
         x = "", y = "") +
-   geom_text(aes(label = Total), position = "stack", vjust = -0.3, size = 3) +
+   geom_text(aes(label = Total), position = "stack", vjust = -0.4, size = 3) +
    theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
          plot.subtitle = element_text(size = 10, hjust = 0.5),
-         axis.text.x = element_text(angle = 90, size = 12, vjust = 0.3, hjust = 1),
+         axis.text.x = element_text(angle = 0, size = 12, vjust = 0.5, hjust = 0.5),
          axis.text.y = element_blank(),
-         legend.position = "bottom",
-         panel.grid.major.y = element_line(colour = "gray", size = .5))
+         axis.ticks.y = element_blank(), axis.ticks.x = element_blank(),
+         legend.position = "none")
 dev.off()
 
 
@@ -111,10 +112,9 @@ manifestacoes %>%
    geom_text(aes(label = Total), position = "stack", vjust = -0.3, size = 3) +
    theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
          plot.subtitle = element_text(size = 10, hjust = 0.5),
-         axis.text.x = element_text(angle = 90, size = 12, vjust = 0.3, hjust = 1),
-         axis.text.y = element_blank(),
-         legend.position = "bottom",
-         panel.grid.major.y = element_line(colour = "gray", size = .5)) +
+         axis.text.x = element_blank(), axis.text.y = element_blank(),
+         axis.ticks.y = element_blank(), axis.ticks.x = element_blank(),
+         legend.position = "bottom", strip.background = element_rect(fill = "darkgray")) +
    facet_wrap( ~ territorio, nrow = 1, ncol = 6)
 dev.off()
 
@@ -141,10 +141,8 @@ manifestacoes %>%
    geom_text(aes(label = Total), position = "stack", vjust = -0.4, size = 4) +
    theme(plot.title = element_text(size = 16, face = "bold", hjust = 0.5),
          legend.position = "bottom",
-         axis.text.x = element_text(angle = 90, size = 9, vjust = 0.5, hjust = 1),
-         axis.text.y = element_blank(),
-         axis.ticks.y = element_blank(),
-         panel.background = element_blank())
+         axis.text.x = element_text(angle = 0, size = 9, vjust = 0.5, hjust = 0.5),
+         axis.text.y = element_blank(), axis.ticks = element_blank())
 dev.off()
 
 
