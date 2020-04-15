@@ -137,7 +137,7 @@ Demandas <-
 
 
 
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes")
+setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/CIA/MonitAtendimento/DadosMonit")
 write.xlsx(list(Infos = c(paste0("Dados referentes ao período de ",
                                  format(as.Date(min(periodo)),
                                         "%d/%m/%Y")," a ",format(as.Date(max(periodo)), "%d/%m/%Y")),
@@ -145,7 +145,7 @@ write.xlsx(list(Infos = c(paste0("Dados referentes ao período de ",
                 NovosRegistros = NovosRegistros,
                 Encaminhamentos = Encaminhamentos,
                 Conclusoes = Conclusoes,
-                Demandas = Demandas), paste0("MonitoramentoPreenchimento",format(Sys.Date(), "%Y%m%d"),".xlsx"),
+                Demandas = Demandas), paste0("MonitoramentoPreenchimento",format(Sys.time(), "%Y%m%d %Hh%Mm"),".xlsx"),
            firstRow = c(FALSE, TRUE, TRUE, TRUE, TRUE),
            firstCol = c(FALSE, TRUE, TRUE, TRUE, TRUE),
            colWidths = c(NA, "auto", "auto", "auto", "auto"))
