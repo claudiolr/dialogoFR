@@ -112,10 +112,18 @@ NovosRegistros <-
 
 Conclusoes <- 
      monitoramento %>% 
-     filter(operadorinseriu %in% atendentes$id,
+     filter(responsavelconclusao %in% atendentes$Nome,
             dataconclusao %in% periodo) %>% 
-     group_by(operadorinseriu) %>% 
-     sample_n(size = 2, replace = FALSE)
+     group_by(responsavelconclusao) %>% 
+     sample_n(size = 2, replace = TRUE)
+
+
+Encaminhamentos <- 
+        monitoramento %>% 
+        filter(ultimoEncaDE %in% atendentes$Nome,
+               ultimoencaData %in% periodo) %>%
+        group_by(ultimoEncaDE) %>% 
+        sample_n(size = 2, replace = TRUE)
 
 
 Demandas <- 
@@ -128,16 +136,19 @@ Demandas <-
      sample_n(size = 2, replace = TRUE)
 
 
+
 setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Manifestacoes")
-write.xlsx(list(Infos = paste0("Dados referentes ao período de ",
-                               format(as.Date(min(periodo)),
-                                      "%d/%m/%Y")," a ",
-                               format(as.Date(max(periodo)), "%d/%m/%Y")),
+write.xlsx(list(Infos = c(paste0("Dados referentes ao período de ",
+                                 format(as.Date(min(periodo)),
+                                        "%d/%m/%Y")," a ",format(as.Date(max(periodo)), "%d/%m/%Y")),
+                          paste0("Arquivo gerado em ",format(Sys.time(), "%d/%m/%Y %H:%M"))),
                 NovosRegistros = NovosRegistros,
+                Encaminhamentos = Encaminhamentos,
                 Conclusoes = Conclusoes,
                 Demandas = Demandas), paste0("MonitoramentoPreenchimento",format(Sys.Date(), "%Y%m%d"),".xlsx"),
-           firstRow = TRUE, firstCol = TRUE)
+           firstRow = c(FALSE, TRUE, TRUE, TRUE, TRUE),
+           firstCol = c(FALSE, TRUE, TRUE, TRUE, TRUE),
+           colWidths = c(NA, "auto", "auto", "auto", "auto"))
 
-
-
+rm(NovosRegistros, Conclusoes, Encaminhamentos, Demandas, atendentes, cias, periodo, monitoramento)
 
