@@ -5,7 +5,7 @@ library(lubridate)
 
 
 # Carregamento dos filtros ------------------------------------------------
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/OrganizacaoInformacao/FiltrosSGS/327")
+setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/FiltrosSGS/327")
 filtro327 <- read.xlsx("filtro_327_20200412182515.xlsx")
 
 
