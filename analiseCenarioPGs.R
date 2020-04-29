@@ -27,8 +27,7 @@ analiseCenarioPG <- function(){
      
      dlgMessage('Primeiro passo: certifique-se que o filtro327 esta carregado e tratado (codigo "filtro327.R)')
      
-     
-     
+
      # Cria coluna de Assunto apenas com o "PG"
      filtro327 <- filtro327 %>% separate(ManifestacaoAssunto, sep = " ", into = "Assunto")
      
