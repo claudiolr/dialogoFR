@@ -1,20 +1,13 @@
-library(reshape2)
 library(tidyverse)
 library(openxlsx)
 library(lubridate)
+library(svDialogs)
 
-
-source("pastaCaminho.R")
 
 # Carregamento e tratamento das bases -------------------------------------
 # Filtro 20 - Tratamento --------------------------------------------------
-# Caminho do Filtro 20
 
-pasta <- "OrganizacaoInformacao/FiltrosSGS/20"
-setwd(caminho(pasta))
-rm(pasta)
-
-filtro <- read.xlsx("filtro_20_20200327144916.xlsx")
+filtro <- read.xlsx(dlg_open(title = "Selecione o arquivo do filtro 20")$res)
 filtro <- filtro %>% select("idAcao",
                             "titulo",
                             "tipoAcao",
@@ -69,25 +62,16 @@ filtro$municipio[filtro$idAcao %in% c("19127","21745")] <- "Aracruz"
 
 
 # Municípios --------------------------------------------------------------
-# setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/ArqAux")
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/ArqAux")
-
-municipios <- read.xlsx("Municipios.xlsx")
+municipios <- read.xlsx(dlg_open(title = "Selecione o arquivo 'Municipios.xlsx'")$res)
 
 
 # Backup ações ------------------------------------------------------------
-# setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/ArqAux")
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/ArqAux")
-
-bkpAcoes <- read.xlsx("BkpAcoes_10fev2019.xlsx", cols = c(1, 3))
+bkpAcoes <- read.xlsx(dlg_open(title = "Selecione o arquivo 'BkpAcoes_10fev2019.xlsx'")$res, cols = c(1, 3))
 
 
 
 # Matizes -----------------------------------------------------------------
-# setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/ArqAux")
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/ArqAux")
-
-matizes <- read.xlsx("AcoesMatizes.xlsx")
+matizes <- read.xlsx(dlg_open(title = "Selecione o arquivo 'AcoesMatizes.xlsx'")$res)
 
 matizes$realdatahorainicio <- as.Date(matizes$realdatahorainicio, origin = "1899-12-30")
 matizes <- matizes[c("idAcao",
@@ -104,10 +88,7 @@ matizes <- matizes[c("idAcao",
 
 
 # Consolidado Agenda ------------------------------------------------------
-# setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/DemEstAnalisesEspecificas/Delib216/ConsolAgendas")
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/DemEstAnalisesEspecificas/Delib216/ConsolAgendas")
-
-consolidado <- read.xlsx("PlanConsolidAgenda_202003V1.xlsm", startRow = 5,
+consolidado <- read.xlsx(dlg_open(title = "Selecione o arquivo atual do consolidado de agenda (.xlsx)")$res, startRow = 5,
                          sheet = "Registro de Reuniões", detectDates = TRUE,
                          cols = c(2:3,5:6,12:13, 15)) # Carrega o arquivo selecionando as colunas defininas no código
 
@@ -215,21 +196,23 @@ geral <- reunioes %>%
      pivot_wider(names_from = UF, values_from = Contagem)
 
 
-
+dlgMessage("A seguir, defina o periodo para geracao de dados dos meses anteriores.")
+mesesAnteriores <- seq.Date(from = dmy(dlgInput("Data de inicio do periodo no formato dd-mm-aaaa")$res),
+                            to = dmy(dlgInput("Data de fim do periodo no formato dd-mm-aaaa")$res), by = "day")
 geralMesesAnteriores <- reunioes %>% 
-     select("realdatahorainicio",
-            "municipio",
-            "UF",
-            "TotaldeParticipantes",
-            "territorio",
-            "codIBGE") %>% 
-     mutate(realdatahorainicio = format(realdatahorainicio, "%b-%Y")) %>% 
-     filter(realdatahorainicio == "fev-2020" | realdatahorainicio == "mar-2020") %>%
-     group_by(UF, realdatahorainicio) %>% 
-     summarise(Participantes = sum(TotaldeParticipantes, na.rm = TRUE),
-               Reuniões = n()) %>% 
-     pivot_longer(cols = 3:4, names_to = "Tipo", values_to = "Contagem") %>% 
-     pivot_wider(names_from = c(realdatahorainicio, UF), values_from = Contagem)
+        select("realdatahorainicio",
+               "municipio",
+               "UF",
+               "TotaldeParticipantes",
+               "territorio",
+               "codIBGE") %>% 
+        filter(ymd(realdatahorainicio) %in% ymd(mesesAnteriores)) %>%
+        mutate(realdatahorainicio = format(realdatahorainicio, "%b-%Y")) %>% 
+        group_by(UF, realdatahorainicio) %>% 
+        summarise(Participantes = sum(TotaldeParticipantes, na.rm = TRUE),
+                  Reuniões = n()) %>% 
+        pivot_longer(cols = 3:4, names_to = "Tipo", values_to = "Contagem") %>% 
+        pivot_wider(names_from = c(realdatahorainicio, UF), values_from = Contagem)
 
 
 geral <- merge(geral, geralMesesAnteriores, by = "Tipo")
@@ -238,17 +221,16 @@ geral <- merge(geral, geralMesesAnteriores, by = "Tipo")
 rm(bkpAcoes, consolidado, filtro, geralMesesAnteriores, matizes, municipios)
 
 
-Sys.info()
-
-# setwd("C:/Users/MAGNA TI/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/RptMensal/202003")
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/Relatorios_ApresentacoesGerais/RptMensal/202003")
+# Define o caminho para salvamento do arquivo
+setwd(gsub("FundaÃ§Ã£o Renova DiÃ¡logo - ExecuÃ§Ã£o",
+           dlgDir(default = getwd(), title = 'Defina a pasta onde os arquivos serao salvos')$res,
+           replacement = "Fundação Renova Diálogo - Execução"))
 write.xlsx(list(PlanPrincipal = reunioes,
                 Plan = plan1,
                 Geral = geral),
-           "BDDadCIF202003_v4.xlsx",
+           paste0("BDDadCIF",dlgInput("Informe o ano e o mes de referencia dos dados, no formato yyyymm")$res,".xlsx"),
            headerStyle = createStyle(halign = "center", textDecoration = "bold"),
            firstCol = TRUE, firstRow = TRUE, withFilter = TRUE)
 
 rm(geral, plan1, reunioes)
-
 
