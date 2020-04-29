@@ -5,10 +5,6 @@ library(RColorBrewer)
 require(plotly, quietly = TRUE)
 
 
-
-setwd("~/GitHub/dialogoFR")
-source("filtro327.R", FALSE, encoding = "UTF-8")
-
 options(scipen = 999)
 
 ########## Filtro327.R
@@ -73,18 +69,18 @@ manifestacoes %>%
      summarise(Total = n())
 
 
+# Carrega dados da área de transferência (copie a tabela e execute o código abaixo)
 atendentes <- read.table(file = "clipboard", header = TRUE, sep = "\t")
 nomes <- atendentes$NOME.SGS
 
 
-knitr::kable(
 manifestacoes %>% 
      filter(ultimoencaData >= ymd("2020-01-20") & ultimoencaData <= ymd("2020-03-31"),
             ultimoEncaDE %in% nomes) %>% 
      mutate(ultimoencaData = format(ultimoencaData, "%b-%Y")) %>%
      # group_by(ultimoencaTipo) %>% 
      summarise(Total = n())
-)
+
 
 
 
