@@ -32,11 +32,17 @@ analiseCenarioPG <- function(){
      filtro327 <- filtro327 %>% separate(ManifestacaoAssunto, sep = " ", into = "Assunto")
      
      # 2. Define o período de análise no formato ymd(year-month-day)
-     MesAtual <- seq.Date(from = dmy(dlgInput("Defina a data de inicio do MES de analise no formato dd-mm-aaaa (sem aspas)")$res),
-                          to = dmy(dlgInput("Defina a data de fim do MES de analise no formato dd-mm-aaaa (sem aspas)")$res), by = "day")
+     MesAtual <- seq.Date(from = dmy(dlgInput("Defina a data de INICIO do MES de analise no formato dd-mm-aaaa (sem aspas)")$res),
+                          to = dmy(dlgInput("Defina a data de FIM do MES de analise no formato dd-mm-aaaa (sem aspas)")$res), by = "day")
      
-     Semestre <- seq.Date(from = dmy(dlgInput("Defina a data de inicio do SEMESTRE no formato dd-mm-aaaa (sem aspas)")$res),
-                          to = dmy(dlgInput("Defina a data de fim do SEMESTRE no formato dd-mm-aaaa (sem aspas)")$res), by = "day")
+     Semestre <- seq.Date(from = dmy(dlgInput("Defina a data de INICIO do SEMESTRE no formato dd-mm-aaaa (sem aspas)")$res),
+                          to = dmy(dlgInput("Defina a data de FIM do SEMESTRE no formato dd-mm-aaaa (sem aspas)")$res), by = "day")
+     
+     
+     setwd(gsub("FundaÃ§Ã£o Renova DiÃ¡logo - ExecuÃ§Ã£o",
+                dlgDir(default = getwd(), title = 'Defina a pasta onde os arquivos serao salvos')$res,
+                replacement = "Fundação Renova Diálogo - Execução"))
+     
      
      # Cria lista de votores dos temas (conjuntos de PGs)
      conjuntos <- list(Tema1 = c("PG001"),
@@ -177,9 +183,6 @@ analiseCenarioPG <- function(){
                pivot_wider(names_from = statusdemanda, values_from = Total, values_fill = list(Total = 0))
           
           
-          setwd(gsub("FundaÃ§Ã£o Renova DiÃ¡logo - ExecuÃ§Ã£o",
-                     dlgDir(default = getwd(), title = 'Defina a pasta onde os arquivos serao salvos')$res,
-                     replacement = "Fundação Renova Diálogo - Execução"))
           
           write.xlsx(list(infos = c("Programas analisados",PG),
                           "Manif(geral)" = tabela1,
