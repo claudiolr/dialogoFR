@@ -42,7 +42,7 @@ options(scipen = 999) # desativa a notação científica
 
 manifestacoes <- filtro327[c(2, 3, 6, 21, 22, 70, 87, 1, 58, 59, 9, 44, 45, 46, 49, 82, 37, 72, 68)]
 
-dlg_form((list = c(seq(1, length(filtro327)))), title = "Fill the form")
+
 
 # Canais de origem e território -------------------------------------------
 
