@@ -1,20 +1,25 @@
 library(tidyverse)
 library(stringr)
-library(reshape2)
 library(openxlsx)
 library(lubridate)
-library(RColorBrewer)
+library(svDialogs)
+
+
+# Calcula indicadores de manifestações a partir do filtro327
+
+periodoFim <- as.Date(dmy(dlgInput("Informe o ultimo dia do periodo de referencia no formato dd-mm-aaaa")$res))
+
 
 
 # Indicador de respostas qualificadas -------------------------------------
 
 # Geral (todos os anos)
-resposta %>%
-     filter(datareg <= ymd("2020-02-29")) %>%  # Filtra as repostas até o último dia do período de referência
+filtro327 %>%
+     filter(datareg <= ymd(periodoFim)) %>%  # Filtra as repostas até o último dia do período de referência
      mutate(RespostaQualificada = ifelse(statusManifestacao %in% c("Respondida",
                                                                    "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                    "Respondida no ato"), "Qualificada",
-                                         ifelse(manifencaminhamentotipo_en %in% c("Dar retorno final",
+                                         ifelse(ultimoencaTipo %in% c("Dar retorno final",
                                                                                   "Dar retorno intermediário",
                                                                                   "Retorno final dado",
                                                                                   "Retorno intermediário dado"), "Qualificada", "Não qualificada"))) %>% 
@@ -24,17 +29,19 @@ resposta %>%
      mutate(RespostaQualificada = ifelse(is.na(Qualificada), "Não", "Sim")) %>% 
      group_by(RespostaQualificada) %>% 
      summarise(Total = n()) %>% 
-     mutate(Proporção = round(prop.table(Total)*100, digits = 1))
+     mutate(Percentual = round(prop.table(Total)*100, digits = 1))
 
-round(prop.table(table(resposta$manifencaminhamentotipo_en))*100, digits = 1)
+knitr::kable(
+round(prop.table(table(filtro327$ultimoencaTipo))*100, digits = 1))
+
 
 # 2020
-resposta %>%
-     filter(datareg <= ymd("2020-02-29") & datareg >= ymd("2020-01-01")) %>% 
+filtro327 %>%
+     filter(datareg <= ymd(periodoFim) & datareg >= ymd("2020-01-01")) %>% 
      mutate(RespostaQualificada = ifelse(statusManifestacao %in% c("Respondida",
                                                                    "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                    "Respondida no ato"), "Qualificada",
-                                         ifelse(manifencaminhamentotipo_en %in% c("Dar retorno final",
+                                         ifelse(ultimoencaTipo %in% c("Dar retorno final",
                                                                                   "Dar retorno intermediário",
                                                                                   "Retorno final dado",
                                                                                   "Retorno intermediário dado"), "Qualificada", "Não qualificada"))) %>%
@@ -44,7 +51,7 @@ resposta %>%
      mutate(RespostaQualificada = ifelse(is.na(Qualificada), "Não", "Sim")) %>% 
      group_by(RespostaQualificada) %>% 
      summarise(Total = n()) %>% 
-     mutate(Proporção = round(prop.table(Total)*100, digits = 1))
+     mutate(Percentual = round(prop.table(Total)*100, digits = 1))
 
 
 
@@ -52,41 +59,41 @@ resposta %>%
 # Indicador de tempo de resposta ------------------------------------------
 
 # Geral
-resposta %>%
-     filter(datareg <= ymd("2020-02-29")) %>% 
+filtro327 %>%
+     filter(datareg <= ymd(periodoFim)) %>% 
      mutate(RespostaQualificada = ifelse(statusManifestacao %in% c("Respondida",
                                                                    "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                    "Respondida no ato"), "Qualificada",
-                                         ifelse(manifencaminhamentotipo_en %in% c("Dar retorno final",
+                                         ifelse(ultimoencaTipo %in% c("Dar retorno final",
                                                                                   "Dar retorno intermediário",
                                                                                   "Retorno final dado",
                                                                                   "Retorno intermediário dado"), "Qualificada", "Não qualificada"))) %>%
      group_by(idManifestacao, RespostaQualificada) %>% 
-     summarise(Mínimo = min(diasEnc)) %>% 
+     summarise(Mínimo = min(ndias)) %>% 
      pivot_wider(names_from = RespostaQualificada, values_from = Mínimo) %>% 
      mutate(Indicador = ifelse(is.na(Qualificada), "Não",
                                ifelse(Qualificada > 20, "Não", "Sim"))) %>% 
      group_by(Indicador) %>% 
      summarise(Total = n()) %>% 
-     mutate(Proporção = round(prop.table(Total)*100, digits = 1))
+     mutate(Percentual = round(prop.table(Total)*100, digits = 1))
 
 
 # 2020
-resposta %>%
-     filter(datareg <= ymd("2020-02-29") & datareg >= ymd("2020-01-01")) %>% 
+filtro327 %>%
+     filter(datareg <= ymd(periodoFim) & datareg >= ymd("2020-01-01")) %>% 
      mutate(RespostaQualificada = ifelse(statusManifestacao %in% c("Respondida",
                                                                    "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
                                                                    "Respondida no ato"), "Qualificada",
-                                         ifelse(manifencaminhamentotipo_en %in% c("Dar retorno final",
+                                         ifelse(ultimoencaTipo %in% c("Dar retorno final",
                                                                                   "Dar retorno intermediário",
                                                                                   "Retorno final dado",
                                                                                   "Retorno intermediário dado"), "Qualificada", "Não qualificada"))) %>%
      group_by(idManifestacao, RespostaQualificada) %>% 
-     summarise(Mínimo = min(diasEnc)) %>% 
+     summarise(Mínimo = min(ndias)) %>% 
      pivot_wider(names_from = RespostaQualificada, values_from = Mínimo) %>% 
      mutate(Indicador = ifelse(is.na(Qualificada), "Não",
                                ifelse(Qualificada > 20, "Não", "Sim"))) %>% 
      group_by(Indicador) %>% 
      summarise(Total = n()) %>% 
-     mutate(Proporção = round(prop.table(Total)*100, digits = 1))
+     mutate(Percentual = round(prop.table(Total)*100, digits = 1))
 
