@@ -1,42 +1,58 @@
-library(tidyverse)
-library(openxlsx)
-library(lubridate)
+# Verifica se os pacotes estão instalados, e caso não estejam, instala e carrega os necessários
 
-
+if(!require(tidyverse)) {
+     install.packages("tidyverse")
+     library(tidyverse)
+}
+if(!require(openxlsx)) {
+     install.packages("openxlsx")
+     library(openxlsx)
+}
+if(!require(lubridate)) {
+     install.packages("lubridate")
+     library(lubridate)
+}
+if(!require(knitr)) {
+     install.packages("knitr")
+     library(knitr)    
+}
+if(!require(svDialogs)) {
+     install.packages("svDialogs")
+     library(svDialogs)
+}
 
 # Carregamento dos filtros ------------------------------------------------
-setwd("C:/Users/Claudio/HERKENHOFF & PRATES/HERKENHOFF & PRATES/Fundação Renova Diálogo - Execução/FiltrosSGS/327")
-filtro327 <- read.xlsx("filtro_327_20200412182515.xlsx")
+filtro327 <- read.xlsx(dlg_open(title = "Selecione o arquivo do filtro")$res) #carrega o filtro para o objeto 'filtro327'
 
 
 # Tratamento das variáveis ------------------------------------------------
-### Variáveis de data
+### Variáveis de data (o Excel considera a data de origem como "01/01/1900", mas no R é preciso determinar a data de origem com "30-12-1899")
 filtro327$datareg <- as.Date(filtro327$datareg, origin = "1899-12-30")
 filtro327$datainsercao <- as.Date(filtro327$datainsercao, origin = "1899-12-30")
 filtro327$prazo <- as.Date(filtro327$prazo, origin = "1899-12-30")
 filtro327$prazoajust <- as.Date(filtro327$prazoajust, origin = "1899-12-30")
 filtro327$dataLimiteConclusao <- as.Date(filtro327$dataLimiteConclusao, origin = "1899-12-30")
 filtro327$dataconclusao <- as.Date(filtro327$dataconclusao, origin = "1899-12-30")
-# ndias = dataconclusao - datereg
-filtro327$ndias <- ifelse(is.na(filtro327$dataconclusao), ymd("2020-03-31") - ymd(filtro327$datareg),
-                          ymd(filtro327$dataconclusao) - ymd(filtro327$datareg))
-filtro327$ultimoencaData <- as.Date(filtro327$ultimoencaData, tryFormats = c("%d/%m/%Y"))
 filtro327$ultimoEncaDataEnc <- as.Date(filtro327$ultimoEncaDataEnc, origin = "1899-12-30")
 
 
+# essa variável vem como texto (string) utilizando a barra (/) como separador
+# algo que o R não reconhece. Para transformá-la em data é necessário usar a função as.Date e o argumento tryFormats
+filtro327$ultimoencaData <- as.Date(filtro327$ultimoencaData, tryFormats = c("%d/%m/%Y"))
+
+
+
 ### Quebra variável de assunto/tema em duas: Assunto e Tema
+# (o comando abaixo mantém a variável original 'manifestacaoAssuntoTema'.
+# Para removê-la após a seperação de valores, alterar para 'remove = TRUE')
+# Lembre-se que removê-la alterará os números de cada coluna na base final (ver final do código)
 filtro327 <- separate(filtro327, manifestacaoAssuntoTema,
-                      into = c("ManifestacaoAssunto", "ManifestacaoTema"), sep = "-",
+                      into = c("ManifestacaoAssunto", "ManifestacaoTema"), sep = " - ",
                       extra = "drop", fill = "right",
                       remove = FALSE)
 
 
-### Remove espaços extras das variáveis Assunto e Tema criadas
-filtro327$ManifestacaoAssunto <- str_squish(str_trim(filtro327$ManifestacaoAssunto))
-filtro327$ManifestacaoTema <- str_squish(str_trim(filtro327$ManifestacaoTema))
-
-
-### Cria municipiosRecod a partir dos municípios do escopo e alguns outros importantes
+### Cria 'municipiosRecod' a partir dos municípios do escopo e alguns outros importantes
 filtro327$municipioRecod <- ifelse(filtro327$municipio %in% c("Acaiaca",
                                                               "Aimorés",
                                                               "Alpercata",
@@ -89,6 +105,7 @@ filtro327$municipioRecod <- ifelse(filtro327$municipio %in% c("Acaiaca",
                                                               "Vitória"), filtro327$municipio, "Demais municípios")
 
 
+# Lista final de colunas da base
 ########## Filtro327.R
 # [1] "datareg"                              [2] "idManifestacao"                         [3] "protocolo"
 # [4] "statusPostoAtendimento"               [5] "idStatusManifestacao"                   [6] "statusManifestacao"
@@ -118,5 +135,4 @@ filtro327$municipioRecod <- ifelse(filtro327$municipio %in% c("Acaiaca",
 # [76] "DATAHORA_EXP"                        [77] "latitude"                              [78] "longitude"
 # [79] "numero_contato_manifestante"         [80] "requerAcaoFutura"                      [81] "responsavelPelaDemanda"
 # [82] "statusdemanda"                       [83] "ultimoEncaminhamentoEnc"               [84] "ultimoEncaDataEnc"
-# [85] "ultimoEncaDEEnc"                     [86] "ultimoEncaPARAEnc"                     [87] "ultimoEncaData"                   
-# [88] "municipioRecod"        
+# [85] "ultimoEncaDEEnc"                     [86] "ultimoEncaPARAEnc"                     [87] "municipioRecod"        
