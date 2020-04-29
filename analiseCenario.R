@@ -57,7 +57,7 @@ analiseCenario <- function() {
         cenario <- filtro327[c(2, 3, 6, 21, 22, 70, 1, 58, 59, 9, 44, 45, 46, 49, 82, 37, 72, 68, 83:87)]
         
         
-        dlgMessage(paste("Segundo passo: a seguir voce devera TRES datas"))
+        dlgMessage(paste("Segundo passo: a seguir voce devera definir TRES datas"))
         mesAtualDiaInicio <- dmy(dlgInput("PRIMEIRO dia do MES ATUAL de analise no formato dd-mm-aaaa")$res)
         mesAtualDiaFim <- dmy(dlgInput("ULTIMO dia do MES ATUAL de analise no formato dd-mm-aaaa")$res)
         trimestreDiaInicio <- dmy(dlgInput("PRIMEIRO dia do TRIMESTRE de analise no formato dd-mm-aaaa")$res)
@@ -333,6 +333,7 @@ analiseCenario <- function() {
         setwd(gsub("FundaÃ§Ã£o Renova DiÃ¡logo - ExecuÃ§Ã£o",
                    dlgDir(default = getwd(), title = 'Defina a pasta onde os arquivos serao salvos')$res,
                    replacement = "Fundação Renova Diálogo - Execução"))
+        
         write.xlsx(list(M1Geral = M1Geral,
                         M1Territorio = M1Territorio,
                         M2Geral = M2Geral,
