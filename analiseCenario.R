@@ -67,11 +67,11 @@ analiseCenario <- function() {
         
         
         ### Manifestações
-        ## 1.Total de manifestações registradas de nov/15 até 31/03
+        ## 1.Total de manifestações registradas de nov/15 até hoje
         # Geral
         M1Geral <- 
                 cenario %>% 
-                mutate(MesAtual = ifelse(datareg %in% periodoGeral, 1, 0)) %>% 
+                mutate(MesAtual = ifelse(datareg %in% mesAtual, 1, 0)) %>% 
                 summarise(Total = n(),
                           MesAtual = sum(MesAtual))
         
@@ -349,10 +349,15 @@ analiseCenario <- function() {
                         D2Territorio = D2Territorio,
                         D3Geral = D3Geral,
                         D3Territorio = D3Territorio), paste0("AnaliseCenario_",format(Sys.Date(), "%Y%m%d"),".xlsx"))
-        
+ 
+        rm(D1Geral, D1Territorio, D2Geral, D2Territorio, D3Geral, D3Territorio, M1Geral,
+           M1Territorio, M2Geral, M2Territorio, M3Geral, M3Territorio, M4Geral, M5Geral, M5Territorio,
+           mesAtual, mesAtualDiaFim, mesAtualDiaInicio, periodoGeral, trimestre, trimestreDiaInicio)
+               
 }
 
 analiseCenario()
 
 rm(analiseCenario)
+
 
