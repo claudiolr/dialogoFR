@@ -109,7 +109,7 @@ reunioesCIF <- function() {
         
         
         # Consolidado Agenda ------------------------------------------------------
-        consolidado <- read.xlsx(dlg_open(title = "Selecione o arquivo atual do consolidado de agenda (.xlsx)")$res, startRow = 5,
+        consolidado <- read.xlsx(dlg_open(title = "Selecione o arquivo atual do consolidado de agenda (.xlsm)")$res, startRow = 5,
                                  sheet = "Registro de Reuniões", detectDates = TRUE,
                                  cols = c(2:3,5:6,12:13, 15)) # Carrega o arquivo selecionando as colunas defininas no código
         
