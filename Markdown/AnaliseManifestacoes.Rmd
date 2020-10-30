@@ -1,0 +1,121 @@
+---
+title: "Análise de manifestações"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+source("filtro327.R", TRUE, encoding = "UTF-8")
+
+options(scipen = 9999999999999)
+
+manifestacoes <- filtro327[c(2, 3, 6, 1, 58, 59, 9, 45, 46, 49, 68, 22, 70)]
+
+```
+
+
+
+```{r, echo=FALSE, eval=TRUE}
+# Por território
+manifestacoes %>% 
+   filter(territorio != "Não informado",
+          datareg >= ymd("2015-11-05")) %>% 
+   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          FormaRecebimento = ifelse(FormaRecebimento %in% c("0800",
+                                                            "Contato Ativo 0800/Fale Conosco"), "0800",
+                                    ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
+                                                                   "Postos de Atendimento CIAs"), "CIAs",
+                                           ifelse(FormaRecebimento %in% c("Fale Conosco",
+                                                                          "Fale Conosco - Portal"), "Portal do usuário",
+                                                  ifelse(FormaRecebimento %in% c("Abordagem presencial",
+                                                                                 "Mobilização",
+                                                                                 "Reunião de Diálogo",
+                                                                                 "Eventos"), "Diálogo", "Outros"))))) %>% 
+   group_by(territorio, FormaRecebimento) %>% 
+   summarise(Total = n()) %>% 
+   ggplot(aes(x = FormaRecebimento, y = Total, fill = FormaRecebimento)) +
+   geom_col() +
+   labs(title = "Origem das manifestações por território",
+        subtitle = "Manifestações registradas desde 05/11/2015",
+        x = "", y = "") +
+   theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+         plot.subtitle = element_text(size = 12, hjust = 0.5),
+         legend.position = "bottom",
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank()) +
+   facet_wrap(~ territorio, nrow = 1, ncol = 7)
+
+
+## Origem das manifestações por território
+manifestacoes %>% 
+   filter(territorio != "Não informado",
+          datareg >= ymd("2015-11-05")) %>% 
+   mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          FormaRecebimento = ifelse(FormaRecebimento %in% c("0800",
+                                                            "Contato Ativo 0800/Fale Conosco"), "0800",
+                                    ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
+                                                                   "Postos de Atendimento CIAs"), "CIAs",
+                                           ifelse(FormaRecebimento %in% c("Fale Conosco",
+                                                                          "Fale Conosco - Portal"), "Portal do usuário",
+                                                  ifelse(FormaRecebimento %in% c("Abordagem presencial",
+                                                                                 "Mobilização",
+                                                                                 "Reunião de Diálogo",
+                                                                                 "Eventos"), "Diálogo", "Outros"))))) %>% 
+   group_by(territorio, FormaRecebimento) %>% 
+   summarise(Total = n()) %>% 
+   ggplot(aes(x = territorio, y = Total, fill = territorio)) +
+   geom_col() +
+   labs(title = "Origem das manifestações por canal", x = "", y = "") +
+   theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+         plot.subtitle = element_text(size = 12, hjust = 0.5),
+         legend.position = "bottom",
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5)) +
+   facet_wrap(~ FormaRecebimento, nrow = 1, ncol = 7)
+
+
+
+
+
+# Formas de recebimento da manifestação por mês (%)
+manifestacoes %>% 
+   filter(territorio != "Não informado",
+          datareg >= ymd("2015-11-05")) %>% 
+   mutate(datareg = format(datareg, "%Y-%m"),
+          statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                "Respondida no ato"), "Finalizada", "Não finalizada"),
+          FormaRecebimento = ifelse(FormaRecebimento %in% c("0800",
+                                                            "Contato Ativo 0800/Fale Conosco"), "0800",
+                                    ifelse(FormaRecebimento %in% c("Contato Ativo CIAs",
+                                                                   "Postos de Atendimento CIAs"), "CIAs",
+                                           ifelse(FormaRecebimento %in% c("Fale Conosco",
+                                                                          "Fale Conosco - Portal"), "Portal do usuário",
+                                                  ifelse(FormaRecebimento %in% c("Abordagem presencial",
+                                                                                 "Mobilização",
+                                                                                 "Reunião de Diálogo",
+                                                                                 "Eventos"), "Diálogo", "Outros"))))) %>% 
+   group_by(datareg, FormaRecebimento) %>% 
+   summarise(Total = n()) %>% 
+   mutate(Percentual = (Total/sum(Total)*100)) %>% 
+   ggplot(aes(x = datareg, y = Percentual, fill = FormaRecebimento)) + 
+   geom_col() +
+   labs(title = "Formas de recebimento das manifestações, por mês",
+        subtitle = "Percentual por canais de diálogo",
+        x = "", y = "Percentual") +
+   theme(plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+         plot.subtitle = element_text(size = 12, hjust = 0.5),
+         legend.position = "bottom",
+         axis.text.x = element_text(angle = 90, size = 8, vjust = 0.5),
+         axis.ticks.y = element_line(colour = "gray", size = .5),
+         panel.grid.major.y = element_line(colour = "gray", size = .5),
+         panel.background = element_blank())
+```

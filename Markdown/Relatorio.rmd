@@ -1,0 +1,216 @@
+---
+title: "AnÃ¡lise de cenÃ¡rio"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# Pacotes
+library(tidyverse)
+library(reshape2)
+library(openxlsx)
+library(lubridate)
+library(RColorBrewer)
+library(knitr)
+
+setwd("C:/Users/Claudio/HERKENHOFF & PRATES/OneDrive - HERKENHOFF & PRATES/DialogoSocial/Filtros/327")
+filtro327 <- read.xlsx("filtro_327_20200323134054.xlsx")
+
+
+
+# Tratamento das variáveis ------------------------------------------------
+### Variáveis de data
+filtro327$datareg <- as.Date(filtro327$datareg, origin = "1899-12-30")
+filtro327$datainsercao <- as.Date(filtro327$datainsercao, origin = "1899-12-30")
+filtro327$prazo <- as.Date(filtro327$prazo, origin = "1899-12-30")
+filtro327$prazoajust <- as.Date(filtro327$prazoajust, origin = "1899-12-30")
+filtro327$dataLimiteConclusao <- as.Date(filtro327$dataLimiteConclusao, origin = "1899-12-30")
+filtro327$dataconclusao <- as.Date(filtro327$dataconclusao, origin = "1899-12-30")
+# ndias = dataconclusao - datereg
+filtro327$ndias <- ifelse(is.na(filtro327$dataconclusao), ymd("2020-03-31") - ymd(filtro327$datareg),
+                          ymd(filtro327$dataconclusao) - ymd(filtro327$datareg))
+filtro327$ultimoEncaData <- as.Date(filtro327$ultimoEncaData, origin = "1899-12-30")
+
+
+### Quebra variável de assunto/tema em duas: Assunto e Tema
+filtro327 <- separate(filtro327, manifestacaoAssuntoTema,
+                      into = c("ManifestacaoAssunto", "ManifestacaoTema"), sep = "-",
+                      extra = "drop", fill = "right",
+                      remove = FALSE)
+
+
+### Remove espaços extras das variáveis Assunto e Tema criadas
+filtro327$ManifestacaoAssunto <- str_squish(str_trim(filtro327$ManifestacaoAssunto))
+filtro327$ManifestacaoTema <- str_squish(str_trim(filtro327$ManifestacaoTema))
+
+
+### Cria municipiosRecod a partir dos municípios do escopo e alguns outros importantes
+filtro327$municipioRecod <- ifelse(filtro327$municipio %in% c("Acaiaca",
+                                                              "Aimorés",
+                                                              "Alpercata",
+                                                              "Aracruz",
+                                                              "Baixo Guandu",
+                                                              "Barra Longa",
+                                                              "Belo Oriente",
+                                                              "Bom Jesus do Galho",
+                                                              "Bugre",
+                                                              "Caratinga",
+                                                              "Colatina",
+                                                              "Conceição da Barra",
+                                                              "Conselheiro Pena",
+                                                              "Córrego Novo",
+                                                              "Dionísio",
+                                                              "Fernandes Tourinho",
+                                                              "Fundão",
+                                                              "Galileia",
+                                                              "Governador Valadares",
+                                                              "Iapu",
+                                                              "Ipaba",
+                                                              "Ipatinga",
+                                                              "Itueta",
+                                                              "Linhares",
+                                                              "Mariana",
+                                                              "Marilândia",
+                                                              "Marliéria",
+                                                              "Naque",
+                                                              "Ouro Preto",
+                                                              "Pancas",
+                                                              "Periquito",
+                                                              "Pingo D’Água",
+                                                              "Ponte Nova",
+                                                              "Raul Soares",
+                                                              "Resplendor",
+                                                              "Rio Casca",
+                                                              "Rio Doce",
+                                                              "Santa Cruz do Escalvado",
+                                                              "Santana do Paraíso",
+                                                              "São Domingos do Prata",
+                                                              "São José do Goiabal",
+                                                              "São Mateus",
+                                                              "São Pedro dos Ferros",
+                                                              "Sem-Peixe",
+                                                              "Serra",
+                                                              "Sobrália",
+                                                              "Sooretama",
+                                                              "Timóteo",
+                                                              "Tumiritinga",
+                                                              "Vitória"), filtro327$municipio, "Demais municípios")
+
+cenario <- filtro327[c(2, 3, 6, 21, 22, 83, 1, 54, 55, 9, 40, 41, 42, 45, 76, 78, 68, 64)]
+
+```
+
+# Dados para Análise de Cenário
+
+### Manifestações
+####1. Total de manifestações registradas de nov/15 até 31/03
+####2. Total de manifestações registradas em março/20
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::kable(cenario %>% 
+                  mutate(MesAtual = ifelse(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31"), 1, 0)) %>% 
+                  summarise(Total = n(),
+                            MesAtual = sum(MesAtual)))
+```
+
+####3. Status de todas as manifestações (nov/15 até 31/03) – status simplificado (respondidas x não respondidas)
+
+```{r, echo=FALSE, eval=TRUE}
+knitr::kable(cenario %>% 
+     mutate(statusManifestacao = ifelse(statusManifestacao %in% c("Respondida",
+                                                                  "Respondida (não se enquadra nas políticas de indenização e auxilio financeiro atuais)",
+                                                                  "Respondida no ato"), "Finalizada", "Não finalizada")) %>% 
+     group_by(statusManifestacao) %>% 
+     summarise(Total = n()) %>% 
+     mutate(Percentual = round(prop.table(Total), digits = 3)*100))
+```
+
+
+####4. Quantidade e % de manifestações por assunto/tema (PG + detalhamento) no último mês (março/20)
+```{r, echo=FALSE, eval=TRUE}
+knitr::kable(cenario %>% 
+     mutate(AssuntoTema = str_replace_all(manifestacaoAssuntoTema, c("PG001 Levantamento e Cadastro" = "PG01",
+                                                                     "PG002 Ressarcimento e Indenização" = "PG02",
+                                                                     "PG003 Proteção e Recuperação da Qualidade de Vida dos Povos Indígenas" = "PG03",
+                                                                     "PG004 Proteção e Qualidade de Vida de Outras Comunidades Tradicionais" = "PG04",
+                                                                     "PG005 Proteção Social" = "PG05",
+                                                                     "PG006 Diálogo, Comunicação e Participação Social" = "PG06",
+                                                                     "PG007 Assistência aos Animais" = "PG07",
+                                                                     "PG008 Reconstrução de Vilas" = "PG08",
+                                                                     "PG009 Recuperação da UHE Risoleta Neves" = "PG09",
+                                                                     "PG010 Recuperação das Demais Comunidades e Infraestruturas Impactadas" = "PG10",
+                                                                     "PG011 Reintegração da Comunidade Escolar" = "PG11",
+                                                                     "PG012 Memória Histórica, Cultural e Artística" = "PG12",
+                                                                     "PG013 Turismo, Cultura, Esporte e Lazer" = "PG13",
+                                                                     "PG014 Saúde Física e Mental da População Impactada" = "PG14",
+                                                                     "PG015 Tecnologias Socioeconômicas" = "PG15",
+                                                                     "PG016 Retomada das Atividades Aquícolas e Pesqueiras" = "PG16",
+                                                                     "PG017 Retomada das Atividades Agropecuárias" = "PG17",
+                                                                     "PG018 Diversificação Econômica Regional" = "PG18",
+                                                                     "PG019 Micro e Pequenos Negócios" = "PG19",
+                                                                     "PG020 Estímulo à Contratação Local" = "PG20",
+                                                                     "PG021 Auxílio Financeiro Emergencial" = "PG21",
+                                                                     "PG023 Manejo dos Rejeitos" = "PG23",
+                                                                     "PG024 Contenção de Rejeitos e Tratamento de Rios" = "PG24",
+                                                                     "PG025 Recuperação da Área Ambiental 1" = "PG25",
+                                                                     "PG026 Recuperação de APPs" = "PG26",
+                                                                     "PG027 Recuperação de Nascentes" = "PG27",
+                                                                     "PG028 Conservação da Biodiversidade" = "PG28",
+                                                                     "PG029 Recuperação da Fauna Silvestre" = "PG29",
+                                                                     "PG030 Fauna e Flora Terrestre Ameaçadas de Extinção" = "PG30",
+                                                                     "PG031 Coleta e Tratamento de Esgoto e Destinação de Resíduos Sólidos" = "PG31",
+                                                                     "PG032 Tratamento de Água e Captação Alternativa" = "PG32",
+                                                                     "PG033 Educação Ambiental" = "PG33",
+                                                                     "PG034 Preparação para Emergência Ambiental" = "PG34",
+                                                                     "PG037 Gestão de Riscos Ambientais" = "PG37",
+                                                                     "PG038 Monitoramento da Bacia do Rio Doce" = "PG38",
+                                                                     "PG039 Unidades de Conservação" = "PG39",
+                                                                     "PG040 CAR e PRAs" = "PG40",
+                                                                     "PG042 Ressarcimento de Gastos Públicos Extraordinários" = "PG42"))) %>% 
+     mutate(AssuntoTema = str_replace_all(AssuntoTema, " - ", " | ")) %>% 
+     filter(datareg >= ymd("2020-03-01") & datareg <= ymd("2020-03-31")) %>% 
+     group_by(AssuntoTema) %>% 
+     summarise(Total = n()) %>% 
+     mutate(Percentual = round(prop.table(Total), digits = 3)*100) %>% 
+     arrange(desc(Percentual)))
+```
+
+
+
+
+## Demandas Individuais
+#### 1. Total de demandas individuais existentes (nov/15 até 31/03)
+```{r, echo=FALSE, eval=TRUE}
+knitr::kable(cenario %>% 
+     filter(!is.na(StatusDemanda)) %>% 
+     summarise(Total = n()))
+```
+
+
+#### 2. Status de todas as demandas individuais (nov/15 até 31/03)
+```{r, echo=FALSE, eval=TRUE}
+knitr::kable(cenario %>% 
+     filter(!is.na(StatusDemanda)) %>% 
+     group_by(StatusDemanda) %>% 
+     summarise(Total = n()) %>% 
+     mutate(Percentual = round(prop.table(Total), digits = 3)*100))
+```
+
+
+#### 3. Quantidade de demandas individuais por assunto (PG) e status (nov/15 até 31/03)
+```{r, echo=FALSE, eval=TRUE}
+knitr::kable(cenario %>% 
+     filter(!is.na(StatusDemanda)) %>% 
+     group_by(StatusDemanda, ManifestacaoAssunto) %>% 
+     summarise(Total = n()) %>% 
+     # mutate(Percentual = round(prop.table(Total), digits = 3)*100) %>% 
+     pivot_wider(names_from = StatusDemanda, values_from = c(Total)))
+```
+
+
+
+
+
